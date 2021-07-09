@@ -54,3 +54,38 @@ CMD ["node", "server.js"]
 
 #reattatch  in a different way
 #docker logs  -f --container name---
+
+
+#removing conatiners
+#docker rm --name(s) name1 name 2
+
+#removes all stop conatiners at once
+#docker container prune 
+
+#shows all images
+#docker mages
+
+#to remove images 
+#docker rmi --image id-- 
+
+#removes all images
+#docker image prune
+
+#--rm will remove 
+#docker run (image) --rm the container when done
+
+#inspect all the config and info of the image
+#docker image inspect --id----
+
+#docker cp can copy files into a container from local machine
+#docker cp dummy/. --container name--:/test (:/ path we want )
+
+#copy from container to local
+#docker --container name--:/test  dummy
+
+
+#give tags to images and names to containers, --name give the conatiner a name
+#docker run -p 80:80 --name 20_node -t 20_appsetup
+
+#giving a tag to image 
+#docker build . -t 20_appsetup
