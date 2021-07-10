@@ -89,3 +89,15 @@ CMD ["node", "server.js"]
 
 #giving a tag to image 
 #docker build . -t 20_appsetup
+
+#retags an image, clones old image, doesnt rename
+#docker tag ass1nodeapp:latest  cfech/node-hello-world
+
+#docker login 
+#docker loogout 
+
+#pushes to docker hub
+#docker push cfech/node-hello-world
+
+#gets this image from the registry(docker hub), will pull the latest version
+#docker pull cfech/node-hello-world
