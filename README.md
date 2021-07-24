@@ -109,6 +109,9 @@ gets this image from the registry(docker hub), will pull the latest version
 
     docker pull cfech/node-hello-world
 
+
+# SECTION 3 - VOLUMES/ENVS/ARGS
+
 --------------------- Unnamed/ Anonymous Volumes ------------------------
 
 #Connects a folder inside the container to a folder outside the container on host machine, have to enable cross device link
@@ -178,3 +181,47 @@ Here we can set the port env in the cli as well,  using --env (or -e), we must a
 --------------------- Environment Variables ------------------
 
 There are also build arguments that allow us to set a default but then also chnage with the --build-arg tag without changing the docker file ie: having 2 different ports for prod and dev
+
+# SECTION 4 NETWORKING
+
+
+will pull the latest mongo image from docker hub and run a container with it
+
+    docker run mongo
+
+Misc Commands
+
+    docker build -t networking .
+
+    docker run --name networking --rm -p 3000:3000 -t networking
+
+---------------------------------------- Must create a network------------------
+
+See all networks
+
+    docker network ls 
+
+Create a network
+
+     docker network create favorites-net
+
+---------------------- Running containers on the same network --check app.js for connection string
+
+Connection string with ip :
+
+    mongodb://172.17.0.2:27017/swfavorites
+
+Connection string with container name (works if on the same network)
+
+    mongodb://mongodb:27017/swfavorites
+
+
+Starting the db containerand connecting to the network
+
+    docker run -d --name mongodb --network favorites-net  -t mongo
+
+Starting the app and connecting to the network
+
+    docker run --name networking --rm -p 3000:3000 --network favorites-net -t networking
+
+# SECTION 5 - MULTI CONTAINER APPS
