@@ -1,0 +1,4 @@
+#Tells us which folders and files to not copy with the copy instruction in the docker file
+
+node_modules
+.git
