@@ -157,10 +157,24 @@ Solve this problem by adding a 3rd -v using an anonymous bind docker will save t
 Now we can update the source code and it will copy over to our docker container because of -v #2 
 
 
-    docker volumes 
+    docker volumes --help 
     
---help to find out more 
+to find out more 
 
 can make binds read only by adding :ro after the :/app
 
-#--------------------- Bind Mounts ------------------------
+4th v allows us to edit the /app/temp folder other wise we wouldn't be able to with the :ro option on the 2nd volume
+
+    docker run -p 3000:80 --rm --name feedback-node-44 -v feedback:/app/feedback -v "C:\Users\cfech\Desktop\code\udemy\docker\44_realNodeApp:/app:ro" -v /app/node_modules -v /app/temp -t feedback-node
+
+--------------------- Bind Mounts ------------------------
+
+--------------------- Environment Variables ------------------
+
+Here we can set the port env in the cli as well,  using --env (or -e), we must also expose the correct port in the -p flag for this to work
+
+    docker run -p 3000:8000 --env PORT=8000 --rm --name feedback-node-44 -v feedback:/app/feedback -v "C:\Users\cfech\Desktop\code\udemy\docker\44_realNodeApp:/app:ro" -v /app/node_modules -v /app/temp -t feedback-node
+
+--------------------- Environment Variables ------------------
+
+There are also build arguments that allow us to set a default but then also chnage with the --build-arg tag without changing the docker file ie: having 2 different ports for prod and dev

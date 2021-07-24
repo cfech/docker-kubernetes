@@ -25,7 +25,7 @@ app.get('/exists', (req, res) => {
 app.post('/create', async (req, res) => {
   const title = req.body.title;
   const content = req.body.text;
-console.log("it wosdfsfrks")
+console.log("it works")
 
 
   const adjTitle = title.toLowerCase();
@@ -45,4 +45,5 @@ console.log("it wosdfsfrks")
   });
 });
 
-app.listen(80);
+//app.listen(80);
+app.listen(process.env.PORT)

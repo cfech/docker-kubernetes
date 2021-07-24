@@ -10,7 +10,11 @@ RUN npm install
 #COPY FROM CURRENT FOLDER TO WORKING DIRECTORY
 COPY . .
 
-EXPOSE 80
+#Set our environment variables 
+ENV PORT 80
+
+#Expose our port env variable
+EXPOSE $PORT
 
 
 
@@ -55,7 +59,19 @@ CMD ["npm", "start"]
 
 #Now we can update the source code and it will copy over to our docker container bacuase of -v #2 
 
+#4th v allows us to edit the /app/temp folder other wise we wouldnt be able to with the :ro option on the 2nd volume
+
+#docker run -p 3000:80 --rm --name feedback-node-44 -v feedback:/app/feedback -v "C:\Users\cfech\Desktop\code\udemy\docker\44_realNodeApp:/app:ro" -v /app/node_modules -v /app/temp -t feedback-node
 
 #docker volumes --help to find out more 
 
 #--------------------- Bind Mounts ------------------------
+
+#--------------------- Environment Variables ------------------
+#Here we can set the port env in the cli as well,  using --env (or -e), we must also expose the correct port in the -p flag for this to work
+
+#docker run -p 3000:8000 --env PORT=8000 --rm --name feedback-node-44 -v feedback:/app/feedback -v "C:\Users\cfech\Desktop\code\udemy\docker\44_realNodeApp:/app:ro" -v /app/node_modules -v /app/temp -t feedback-node
+
+#--------------------- Environment Variables ------------------
+
+#there are also build arguments that allow us to set a default but then also chnage with the --build-arg tag without changing the docker file ie: having 2 different ports for prod and dev
