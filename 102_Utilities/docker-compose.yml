@@ -1,0 +1,11 @@
+version: "3.8"
+services: 
+  example:
+    build: ./
+    #keep input open
+    stdin_open: true
+    tty: true
+    #bind this folder to the app folder 
+    volumes: 
+      - ./:/app
+    container_name: exmaple

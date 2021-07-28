@@ -6,6 +6,7 @@ https://www.udemy.com/course/docker-kubernetes-the-practical-guide/
 
 
 #--------------------- shell commands --------------------------------
+
 Show all running containers
 
     docker ps
@@ -47,7 +48,7 @@ removing containers
 
     docker rm --name(s) name1 name 2
 
-removes all stoped containers at once
+removes all stopped containers at once
     
     docker container prune 
 
@@ -111,7 +112,7 @@ gets this image from the registry(docker hub), will pull the latest version
 
 
 # SECTION 3 - VOLUMES/ENVS/ARGS (44_realNodeApp)
-*Adding dockerignore files and ignoring files (e.g.) any local node modules we dont need will speed up build time*
+*Adding dockerignore files and ignoring files (e.g.) any local node modules we don't need will speed up build time*
 
 --------------------- Unnamed/ Anonymous Volumes ------------------------
 
@@ -186,7 +187,7 @@ There are also build arguments that allow us to set a default but then also chan
 # SECTION 4 NETWORKING (67_Networking)
 
 
-*Adding dockerignore files and ignoring files (e.g.) any local node modules we dont need will speed up build time*
+*Adding dockerignore files and ignoring files (e.g.) any local node modules we don't need will speed up build time*
 
 
 will pull the latest mongo image from docker hub and run a container with it
@@ -367,3 +368,77 @@ Sets environment variables
 
 
 # SECTION 6 DOCKER COMPOSE (91_dockerCompose)
+*VIEW THE DOCKER-COMPOSE.YML FILE IN 91_DOCKER COMPOSE FOR MORE INFO*
+
+*DOCKER COMPOSE DOES NOT REPLACE THE DOCKER FILE BUT WORKS IN CONJUNCTION WITH IT TO BUILD MORE COMPLEX MULTI CONTAINER PROJECTS WHERE MULTIPLE CONTAINERS MUST TALK TO EACH OTHER. IT ALSO REMOVES THE NEED FOR LONG CLI COMMANDS*
+
+start a docker compose
+
+finds and builds all images , starts a custom network and attaches all containers to it 
+
+    docker-compose up
+
+ Starts in detached mode
+
+    docker compose up -d
+
+brings the whole network down and prunes containers and networks
+
+    docker-compose down
+
+ Will remove the volumes as well
+
+    docker-compose down -v
+
+Will rebuild all images in docker compose (ie: if there is a code change or something the bind mount doesn't pick up)
+
+    docker-compose up --build
+
+Will just build the missing images but not start the containers
+
+    docker-compose build
+
+# Section 7 Utility Containers and Executing Commands in Containers (102_Utilities)
+
+Run a container with node in it 
+
+    docker run -it node
+
+Run in default command
+
+    docker run -d-it node
+
+Docker exec allows us to execute a command inside a running container 
+
+Here we say run npm init [container name] in interactive (-it) mode
+
+    docker exec -it  keen_benz npm init
+
+Run node and override default CMD
+
+    docker run -it  node npm init
+
+---------- Building Util Container (See docker file) --------
+
+    docker build -t node-util .
+
+Start the docker container with a bind mount, this will allow us to run npm init inside the container and use the bind mount to share the package.json file to our home directory from inside the docker file, in essence than never needing node on our host machine to run npm init - makes this a utility container, more useful when we need a lot of things installed to setup projects
+
+    docker run --name node-util -v C:\Users\cfech\Desktop\code\udemy\docker\102_Utilities:/app  -it node-util npm init
+
+### Entry points
+
+ Now we just append init because of our npm entry point, no need to have the npm (and it wouldn't work) (see entrypoint in docker file)
+
+    docker run --name node-util -v C:\Users\cfech\Desktop\code\udemy\docker\102_Utilities:/app  -it node-util init    
+
+Could install too
+
+    docker run -v C:\Users\cfech\Desktop\code\udemy\docker\102_Utilities:/app  -it node-util install express
+
+### Run with docker compose
+     
+docker-compose run (service) (cmd to be appended to entry point)
+
+     docker-compose run --rm(optional) example init
+

@@ -1,0 +1,108 @@
+# https://docs.docker.com/compose/
+# https://docs.docker.com/compose/compose-file/compose-file-v3/
+
+#keys must be exact
+
+#which version of docker engine we use 
+version: "3.8"
+
+#docker compose will create a new network and all will be added to it out of the box so we dont have to specify a network 
+
+#the containers we whish to use in our project
+services:
+#docker compose has --rm in by deafault, run in detatched when we start the containers
+  mongodb:
+    #image we use
+    image: 'mongo'
+    #volumes we need
+    volumes:
+      - data2:/data/db
+
+    #will force this name (not mandatory)
+    # container_name: mongodb
+    
+    # environment: 
+        #2 different ways to incorporate env files, could also have a seperate .env file 
+        # MONGO_INITDB_ROOT_USERNAME: test
+        # - MONGO_INITDB_ROOT_PASSWORD=test
+    #using a .env file 
+    env_file: 
+      - ./mongo.env
+      #could do this
+    # networks: 
+    #   - 80-goals-net
+
+  backend:
+    #our docker file is in the bakckend folder
+    build: ./backend
+
+    #---------------- not using here just an example -------------------
+    #a longer context , could use this if we have different name than dockerfile ie: dockerfile-dev
+    #context will also be where the dockerfile copies the source code so if the dockerfile is buried a bit you would need to set a higher context
+    # build: 
+    #   context: ./backend
+    #   dockerfile: Dockerfile-dev
+        #   args:
+        #     some-arg: 1
+    #---------------- not using here just an example -------------------
+    #our published ports, here we expose port 80 in the conatiner to 80 on the local host
+    ports: 
+      - "80:80"
+
+    volumes: 
+      - logs:/app/logs
+      #realtive path for the bind mount instead of the whole thing that what needed in the cli
+      - ./backend:/app
+      - /app/node_modules
+    env_file: ./backend.env
+    
+    #only available in docker compose,
+    #says out backend depends on mongodb
+    depends_on: 
+      - mongodb
+
+
+  frontend:
+    build: ./frontend
+    ports: 
+      - '3000:3000'
+    volumes: 
+      - ./frontend/src:/app/src
+
+    #these two options tell our container to start in interactive mode, which react apps need 
+    #tells docker this service needs an open input connection
+    stdin_open: true
+    #attatches a terminal 
+    tty: true
+    #depends on the backend so dont start unless backend starts
+    depends_on: 
+      - backend
+#have to pull all named volumes here  in a top level volumes file, dont declare bind mounts or anon volumes
+volumes: 
+  data2:
+  logs:
+
+#start a docker compose
+#finds and builds all images , starts a custom network and attatches all containers to it 
+
+    #docker-compose up
+
+# Starts in detatched mode
+
+    #docker compose up -d
+
+#brings the whole network down and prunes containers and networks
+
+    #docker-compose down
+
+# Will remove the volumes as well
+
+    #docker-compose down -v
+
+#Will rebuild all images in docker compose (ie: if there is a code change or something the bind mount doesnt pick up)
+
+   #docker-compose up --build
+
+#Will just build the missing images but not start the containers
+
+    #docker-compose build
