@@ -1,0 +1,76 @@
+version: "3.8"
+
+services: 
+  #this is our web server
+  server:
+    #pulled right from docker hub
+    image: 'nginx:stable-alpine'
+    #80 exposed intetnally on this image
+    ports: 
+      - '8000:80'
+      #bind mount to give a server fonfig
+    volumes: 
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      #so the server knows which files to serve
+      - ./src:/var/www/html
+    # this sever needs these other services to work, so if we bring up server service it will start the depends services  
+    depends_on: 
+      - php
+      - mysql
+  php:
+    build: 
+      #folder it is in
+      context: ./dockerfiles
+      #actual docker file
+      dockerfile: php.dockerfile
+    
+      #bind mount to our src folder so that php interpreter will have access to our source code, delegated will improve perfromance by moving files around in batches and not all at one time
+    
+    volumes: 
+      - ./src:/var/www/html:delegated
+      
+    #------------------- port mapping for php/ngnx----------------------
+
+    # fastcgi_pass php:9000;
+    #port is mapped in ngnx config, where we tell it 'php:9000' because these containers will be on the same network they will be able to discover each other by name, and 900 is what is exposed by the image we are using in the php.dockerfile
+
+    #------------------- port mapping ----------------------
+
+  mysql:
+    #will pull in this image and run a container with it
+    image: mysql:5.7
+
+    #must provide db, user, password etc... find the specfic vars on the dockerhub docs for the image
+    env_file: 
+      - ./env/mysql.env
+  
+  #Utility container that will be used by laravel
+  composer:
+    build: 
+      context: ./dockerfiles
+      dockerfile: composer.dockerfile
+    
+      #will create a laravel project in this folder, and then through the bind mount put it on our local machine, and sinde our php project is bound to the same place it should be copied into that folder as well
+    volumes: 
+      - ./src:/var/www/html
+  
+  #artisan is a laravel command built with php, so we cna just use the php dockerfile to build the service
+  artisan:
+    build: 
+      context: ./dockerfiles
+      dockerfile: php.dockerfile
+    
+    #giving this our src code
+    volumes: 
+      - ./src:/var/www/html
+
+    #specify the entrypoint for our artisan service, works just as if we specified in the dockerfile, we are executing the artisan file refernced
+    entrypoint: ["php", "/var/www/html/artisan" ]
+      
+#we can just build all of the requirments that would be in a docker file in the docker compose as well
+  npm:
+    image: node:14
+    working_dir: /var/www/html
+    entrypoint: ["npm"]
+    volumes: 
+      - ./src:var/www/html

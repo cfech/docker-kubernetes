@@ -442,3 +442,9 @@ docker-compose run (service) (cmd to be appended to entry point)
 
      docker-compose run --rm(optional) example init
 
+
+# Section 8 - More Complex multi container setup with php and laravel 
+
+Refer to 111_dockerLaravelPhp readme for more info
+
+# Section 9 Deploying to AWS
