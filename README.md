@@ -4,14 +4,15 @@ docker course
 
 https://www.udemy.com/course/docker-kubernetes-the-practical-guide/
 - [Shell Commands](#shell-commands)
-- [Section 3-Volumes/Envs/Args (44_realNodeApp)](#section-3---Volumes/Envs/Args-(44-realNodeApp))
-- [Section 4 Networking (67_Networking)](#Section-4-Networking-67-Networking)
-- [Section 5 - Multi Container Apps (80_multiContainer)](#section-5---Multi-Container-Apps-(80-multiContainer))
-- [Section 6 Docker Compose (91 dockerCompose)](#Section-6-Docker-Compose-(91-dockerCompose))
-- [Section 7 Utility Containers and Executing Commands in Containers (102 Utilities)](#section-7-utility-containers-and-executing-commands-in-containers-(102-Utilities))
-- [Section 8 - More Complex multi container setup with php and laravel](#section-8---more-complex-multi-container-setup-with-php-and-laravel)
-- [Section 9 Deploying to AWS](#section-9-deploying-to-aws)
-
+- [Section 3-Volumes/Envs/Args (44_realNodeApp)](#section-3)
+- [Section 4 Networking (67_Networking)](#section-4)
+- [Section 5 - Multi Container Apps (80_multiContainer)](#section-5)
+- [Section 6 Docker Compose (91 dockerCompose)](#section-6))
+- [Section 7 Utility Containers and Executing Commands in Containers (102 Utilities)](#section-7)
+- [Section 8 - More Complex multi container setup with php and laravel](#section-8)
+- [Section 9 Deploying to AWS](#section-9)
+- [Section 11 Kubernetes](#section-11-kubernetes)
+- [Section 12 Installing Kubernetes](#section-12-installing-kubernetes)
 
 # Shell Commands
 
@@ -119,8 +120,8 @@ gets this image from the registry(docker hub), will pull the latest version
     docker pull cfech/node-hello-world
 
 
-# Section 3
-## Volumes/Envs/Args (44 realNodeApp)
+# Section 3 (Test)
+# Volumes/Envs/Args (44 realNodeApp)
 *Adding dockerignore files and ignoring files (e.g.) any local node modules we don't need will speed up build time*
 
 --------------------- Unnamed/ Anonymous Volumes ------------------------
@@ -193,7 +194,9 @@ Here we can set the port env in the cli as well,  using --env (or -e), we must a
 
 There are also build arguments that allow us to set a default but then also change with the --build-arg tag without changing the docker file ie: having 2 different ports for prod and dev
 
-# Section 4 Networking (67 Networking)
+
+# Section 4
+# Networking (67 Networking)
 
 
 *Adding dockerignore files and ignoring files (e.g.) any local node modules we don't need will speed up build time*
@@ -238,7 +241,8 @@ Starting the app and connecting to the network
 
     docker run --name networking --rm -p 3000:3000 --network favorites-net -t networking
 
-# Section 5 - Multi Container Apps (80 multiContainer)
+# Section 5
+# Multi Container Apps (80 multiContainer)
 
 FOR DOCKER CONTAINER COMMUNICATION WE MUST EITHER EXPOSE THE PORTS TO LOCAL HOST OR PUT THEM ALL ON THE SAME NETWORK OR BOTH
 
@@ -375,8 +379,9 @@ Sets environment variables
 
 *Adding dockerignore files and ignoring files (e.g.) any local node modules we don't need will speed up build time*
 
+# Section 6
 
-# Section 6 Docker Compose (91 dockerCompose)
+## Docker Compose (91 dockerCompose)
 *VIEW THE DOCKER-COMPOSE.YML FILE IN 91_DOCKER COMPOSE FOR MORE INFO*
 
 *DOCKER COMPOSE DOES NOT REPLACE THE DOCKER FILE BUT WORKS IN CONJUNCTION WITH IT TO BUILD MORE COMPLEX MULTI CONTAINER PROJECTS WHERE MULTIPLE CONTAINERS MUST TALK TO EACH OTHER. IT ALSO REMOVES THE NEED FOR LONG CLI COMMANDS*
@@ -407,7 +412,8 @@ Will just build the missing images but not start the containers
 
     docker-compose build
 
-# Section 7 Utility Containers and Executing Commands in Containers (102 Utilities)
+# Section 7
+# Utility Containers and Executing Commands in Containers (102 Utilities)
 
 Run a container with node in it 
 
@@ -452,11 +458,14 @@ docker-compose run (service) (cmd to be appended to entry point)
      docker-compose run --rm(optional) example init
 
 
-# Section 8 - More Complex multi container setup with php and laravel 
+# Section 8 
+# More Complex multi container setup with php and laravel 
 
 Refer to 111_dockerLaravelPhp readme for more info
 
-# Section 9 Deploying to AWS
+# Section 9 
+
+# Deploying to AWS
 
 Bind mounts are not for production, only for development not production. They are useful because we don't have to rebuild the image with each code change
 
@@ -632,7 +641,7 @@ Much more complicated
 *To use ECR search for it on AWS, create a repository and use the cli command to push your image. You will have to have aws cli configured for this*
 
 
-## Section 11 Kubernetes ##
+# Section 11 Kubernetes
 
 Kubernetes is a tool that helps deploying monitor and scale docker applications.
 It does not replace docker but works hand in hand with it. There are a lot of similarities to that of AWS ECS provides including scaling and monitoring health of containers, relaunching if necessary. 
@@ -641,7 +650,7 @@ Kubernetes works by having a master node that runs services (API Server, which t
 
 The worker node is a machine (ie: ec2 instance) that host pods, pods host one or more containers and their resources such as volumes IP's and run configurations. Pods are managed by the master node. May have multiple containers inside a pod. Could have multiple pods with the same or different pods. Pods have to have some other software , docker to run docker containers, the kubelet which is responsible for communicating with the master node. And a proxy service which manages inbound and outbound network traffic.
 
-## Section 12 Installing Kubernetes ##
+# Section 12 Installing Kubernetes
 
 Have to install kubernetes
 
