@@ -119,7 +119,8 @@ gets this image from the registry(docker hub), will pull the latest version
     docker pull cfech/node-hello-world
 
 
-# Section 3 - Volumes/Envs/Args (44 realNodeApp)
+# Section 3
+## Volumes/Envs/Args (44 realNodeApp)
 *Adding dockerignore files and ignoring files (e.g.) any local node modules we don't need will speed up build time*
 
 --------------------- Unnamed/ Anonymous Volumes ------------------------
@@ -617,3 +618,37 @@ If not a prod environment you should verify your instance is not in either of th
 
 To stop and instance right click it in the EC2 instances window -> stop instance
 or -> terminate instance to get rid of it. If you stop an instance and it is an an auto scaling group it will spin up another copy for you so watch out for that
+
+
+## Deploying to ECS ##
+Much more complicated
+1. Create a cluster on aws, this is where all your tasks/containers sit. There are two options EC2 where you have a whole server and must manage/secure it or Fargate where you can just deploy your containers and have them be managed by AWS. You can create a private vpc for the container if necessary.
+2. Create a task definition which includes information about your container. You can store your container on docker hub, a private registry or aws Elastic Container Registry(ECR) Service
+    2a. You must select a role for the task that controls the permission aws will give the task , the role "ecsTaskExecution" should be created the 1st time the container setup wizard is used
+    2b. Manage cpu's/ram 
+    2c. Add the container(s) you want with the docker configuration (ports, envs, volumes)
+3. Create a Service on the cluster - this will run tasks based on the task definition that is selected. Here you select the task:version you want to run as well as assign load balancers, autoscaling, vpcs and sub nets. Hit create and it will launch the container(s) listed in the task definition.
+
+*To use ECR search for it on AWS, create a repository and use the cli command to push your image. You will have to have aws cli configured for this*
+
+
+## Section 11 Kubernetes ##
+
+Kubernetes is a tool that helps deploying monitor and scale docker applications.
+It does not replace docker but works hand in hand with it. There are a lot of similarities to that of AWS ECS provides including scaling and monitoring health of containers, relaunching if necessary. 
+
+Kubernetes works by having a master node that runs services (API Server, which talks to the kubelet service on the worker node, 2. The scheduler that watches the pods and chooses worker nodes to add need pods due to health or scaling, 3. The cube controller manager watches the worker nodes to ensure we have the correct number of pods up and running. 4. Optional - There is also a cloud controller manager that performs the same tasks but to talk to a cloud service provider ) to manage a lot of worker nodes. 
+
+The worker node is a machine (ie: ec2 instance) that host pods, pods host one or more containers and their resources such as volumes IP's and run configurations. Pods are managed by the master node. May have multiple containers inside a pod. Could have multiple pods with the same or different pods. Pods have to have some other software , docker to run docker containers, the kubelet which is responsible for communicating with the master node. And a proxy service which manages inbound and outbound network traffic.
+
+## Section 12 Installing Kubernetes ##
+
+Have to install kubernetes
+
+https://kubernetes.io/releases/download/
+
+Install the Kubectl - kubernetes controller
+and Minikube for local development
+
+https://minikube.sigs.k8s.io/docs/start/
+
