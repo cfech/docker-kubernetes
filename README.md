@@ -683,6 +683,15 @@ Can run to see a web dashboard of the cluster
 
     minikube dashboard
 
+Other Common Cmds
+
+    minikube pause
+
+    minikube unpause
+
+    minikube update-context
+
+
 Pod Object --- 
 Pod is the smallest unit Kubernetes interacts with, it contains and runs one (usually) or multiple containers.
 
