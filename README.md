@@ -690,6 +690,26 @@ Pods contain shared resources (volumes) for all Pod containers
 
 Pods have cluster internal ip address that can be used to send requests to the pod. 
 
-Containers in the pod can communicate with localhost
+Containers in the pod can communicate via localhost
 
+Pods are designed to be ephemeral(do not persist), all the resources in the pod are lost if a pod is replaced or moved. This a deliberate design decision.
 
+Containers work like this as well. Could use volumes to persist data .
+
+For pods managed by the user you would need a controller.
+
+185 - Deployment object -------------------
+
+One of the key objects we work with
+
+Create a deployment object which we give instructions about the number and types of pods we wish to deploy
+
+Controls a number of pods
+
+Set a desired target state and Kubernetes will do the leg work.
+
+Deployments can be paused, rolled back or deleted.
+
+Can use autoscaling to create/delete more pods if necessary 
+
+We can create multiple deployments to having multiple different or the same pods
