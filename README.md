@@ -661,3 +661,35 @@ and Minikube for local development
 
 https://minikube.sigs.k8s.io/docs/start/
 
+For windows need admin privileges to install
+
+Once installed and path updated test Kubectl with to show version
+
+    kubectl version --client
+
+Once minikube installed run to setup a kubernetes cluster on your machine 
+
+    minikube start (will start by default in docker)
+
+or 
+
+    minikube start --driver=[virtualbox, hyper-v, etc...]
+
+Can run  to check status of the cluster
+
+    minikube status 
+
+Can run to see a web dashboard of the cluster
+
+    minikube dashboard
+
+Pod Object --- 
+Pod is the smallest unit Kubernetes interacts with, it contains and runs one (usually) or multiple containers.
+
+Pods contain shared resources (volumes) for all Pod containers
+
+Pods have cluster internal ip address that can be used to send requests to the pod. 
+
+Containers in the pod can communicate with localhost
+
+
