@@ -57,7 +57,7 @@ To see running service
 
 This will show us the services running and their internal/external IP's if using aws we would see an ip instead of pending but minikube is a vm on our host machine so does not have that capability
 
-![image](./services.png)
+![image](./services.PNG)
 
 
 for local development we can get around that by 
@@ -71,7 +71,7 @@ will run a local host type server with a 127.0.0.1 ip
 
 190 ------------ Restarting containers --------------
 
-If your container has an error and crashes kubernetes will restart our container. This is a behavior of our deployment. We want 1 pod(container) always runing so it will match the required state.
+If your container has an error and crashes kubernetes will restart our container. This is a behavior of our deployment. We want 1 pod(container) always running so it will match the required state.
 
 can reproduce this by using the demo project in 186_first-kubernetes following the steps above (or just us my image on docker hub if still there) and launching the pod and adding a service with a load balancer, then navigating to the /error page which causes a crash, then back in cmd/terminal run
 

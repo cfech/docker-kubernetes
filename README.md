@@ -787,7 +787,7 @@ To see running service
 
 This will show us the services running and their internal/external IP's if using aws we would see an ip instead of pending but minikube is a vm on our host machine so does not have that capability
 
-![image](./186_first_Kubernetes/services.png)
+![image](./186_first_Kubernetes/services.PNG)
 
 
 for local development we can get around that by 
