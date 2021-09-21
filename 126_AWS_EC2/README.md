@@ -39,3 +39,12 @@ docker tag node-aws-example cfech/node-aws-example
 
 repush
 docker push cfech/node-aws-example
+
+
+
+
+
+
+///
+
+docker run -d --name awsexample -p 80:80 --env TEST_ENV=hello-world -t awsexample

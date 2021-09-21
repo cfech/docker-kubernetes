@@ -11,4 +11,10 @@ app.get('/', (req, res) => {
   res.sendFile(filePath);
 });
 
+let testVar = process.env.TEST_ENV || "didn't work"
+
+app.get('/test', (req, res) => {
+  res.json(testVar)
+})
+
 app.listen(80);
