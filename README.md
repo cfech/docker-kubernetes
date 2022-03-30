@@ -646,9 +646,24 @@ Much more complicated
 Kubernetes is a tool that helps deploying monitor and scale docker applications.
 It does not replace docker but works hand in hand with it. There are a lot of similarities to that of AWS ECS provides including scaling and monitoring health of containers, relaunching if necessary. 
 
+![image](./images/k8s-core.PNG)
+
+## Nodes #
+---
+
+![image](./images/k8s-all-nodes.PNG)
+
+## Master Node ##
+
 Kubernetes works by having a master node that runs services (API Server, which talks to the kubelet service on the worker node, 2. The scheduler that watches the pods and chooses worker nodes to add need pods due to health or scaling, 3. The cube controller manager watches the worker nodes to ensure we have the correct number of pods up and running. 4. Optional - There is also a cloud controller manager that performs the same tasks but to talk to a cloud service provider ) to manage a lot of worker nodes. 
 
+## Worker Nodes ##
+
+![image](./images/k8s-master-node.PNG)
+
 The worker node is a machine (ie: ec2 instance) that host pods, pods host one or more containers and their resources such as volumes IP's and run configurations. Pods are managed by the master node. May have multiple containers inside a pod. Could have multiple pods with the same or different pods. Pods have to have some other software , docker to run docker containers, the kubelet which is responsible for communicating with the master node. And a proxy service which manages inbound and outbound network traffic.
+
+![image](./images/k8s-worker-nodes.PNG)
 
 # Section 12 Installing Kubernetes
 
@@ -778,6 +793,10 @@ To expose a pod created by a deployment run This will create the necessary servi
 
     kubectl expose deployment first-app --type=LoadBalancer --port=8080
    [ cmd   ]       [type] [deployment name] [use a load balancer for unique address for the service] [port exposed by project]
+
+to delete 
+
+    kubectl delete service first-app [service name]
 
 load balancer is only available if the infrastructure supports it (AWS and minikube do support it)
 
