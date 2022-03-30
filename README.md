@@ -4,17 +4,51 @@ docker course
 
 https://www.udemy.com/course/docker-kubernetes-the-practical-guide/
 - [Shell Commands](#shell-commands)
-- [Section 3-Volumes/Envs/Args (44_realNodeApp)](#section-3)
-- [Section 4 Networking (67_Networking)](#section-4)
-- [Section 5 - Multi Container Apps (80_multiContainer)](#section-5)
-- [Section 6 Docker Compose (91 dockerCompose)](#section-6))
-- [Section 7 Utility Containers and Executing Commands in Containers (102 Utilities)](#section-7)
-- [Section 8 - More Complex multi container setup with php and laravel](#section-8)
-- [Section 9 Deploying to AWS](#section-9)
+- [Section 3 Volumes Envs And Args](#section-3-volumes-envs-and-args)
+  * [Unnamed and Anonymous Volumes](#unnamed-and-anonymous-volumes)
+  * [Names Volumes](#names-volumes)
+  * [Bind Mounts](#bind-mounts)
+  * [Environment Variables](#environment-variables)
+- [Section 4 Networking](#section-4-networking)
+- [Section 5 Multi Container Apps](#section-5-multi-container-apps)
+  * [Running Multi Container Apps On The Same Network](#running-multi-container-apps-on-the-same-network)
+  * [Running Mongo DB With A Named Volume](#running-mongo-db-with-a-named-volume)
+  * [Volumes And Binds For The Backend](#volumes-and-binds-for-the-backend)
+  * [Volumes And Binds For frontend](#volumes-and-binds-for-frontend)
+- [Section 6 Docker Compose](#section-6-docker-compose)
+- [Section 7 Utility Containers And Executing Commands In Containers](#section-7-utility-containers-and-executing-commands-in-containers)
+  * [Building Utility Container](#building-utility-container)
+  * [Entry Points](#entry-points)
+  * [Run With Docker Compose](#run-with-docker-compose)
+- [Section 8 More Complex Multi Container Setup With PHP And Laravel](#section-8-more-complex-multi-container-setup-with-php-and-laravel)
+- [Section 9](#section-9)
+- [Deploying to AWS](#deploying-to-aws)
+  * [Steps To Deploy A Container To An EC2 From Docker Hub](#steps-to-deploy-a-container-to-an-ec2-from-docker-hub)
+  * [Adding Image To Docker Hub](#adding-image-to-docker-hub)
+  * [Configuring Security Groups](#configuring-security-groups)
+  * [Updating Image Running On An EC2](#updating-image-running-on-an-ec2)
+  * [Shutting Down The Container](#shutting-down-the-container)
+  * [AWS Billing / Free Tier / Stopping an Instance](#aws-billing---free-tier---stopping-an-instance)
+  * [Deploying to ECS](#deploying-to-ecs)
 - [Section 11 Kubernetes](#section-11-kubernetes)
+  * [Nodes](#nodes)
+  * [Master Node](#master-node)
+  * [Worker Nodes](#worker-nodes)
 - [Section 12 Installing Kubernetes](#section-12-installing-kubernetes)
+  * [Installing Kubernetes (Windows)](#installing-kubernetes--windows-)
+  * [Running Kubernetes With Kubectl And Minikube](#running-kubernetes-with-kubectl-and-minikube)
+  * [Kubernetes Objects](#kubernetes-objects)
+    + [Pod Object](#pod-object)
+    + [185 Deployment Object](#185-deployment-object)
+  * [FROM  Readme 186 first Kubernetes](#from--readme-186-first-kubernetes)
+    + [Imperative Creation Example](#imperative-creation-example)
+    + [188 Service Object](#188-service-object)
+    + [190 Restarting Containers](#190-restarting-containers)
+    + [191 Scaling in action](#191-scaling-in-action)
+    + [192 Updating Deployments](#192-updating-deployments)
+    + [193 Deployment Rollbacks and History](#193-deployment-rollbacks-and-history)
 
-# Shell Commands
+# Shell Commands #
 
  Show all running containers
 
@@ -120,11 +154,11 @@ gets this image from the registry(docker hub), will pull the latest version
     docker pull cfech/node-hello-world
 
 
-# Section 3 (Test)
-# Volumes/Envs/Args (44 realNodeApp)
+# Section 3 Volumes Envs And Args #
+- 44 realNodeApp
 *Adding dockerignore files and ignoring files (e.g.) any local node modules we don't need will speed up build time*
 
---------------------- Unnamed/ Anonymous Volumes ------------------------
+## Unnamed and Anonymous Volumes
 
 #Connects a folder inside the container to a folder outside the container on host machine, have to enable cross device link
 
@@ -138,19 +172,14 @@ VOLUME [ "/app/feedback" ]
 
 --shows all volumes, an unnamed volume is an anonymous volume and will always go away when the container is shutdown, volumes are actually stored somewhere in the file directory and managed by docker
 
-#--------------------- Unnamed/ Anonymous Volumes ------------------------
-
---------------------- Named Volumes ------------------------
-
+## Names Volumes ##
 Named volumes -- not deleted when container is removed
 
 -v says store the /app/feedback in a volume on our local machine named feedback
 
     docker run -p 3000:80 --rm --name feedback-node-rm --name feedback-node-44 -v feedback:/app/feedback  -t feedback-node
 
-#--------------------- Named Volumes ------------------------
-
-#--------------------- Bind Mounts ------------------------
+## Bind Mounts ##
 
 Bind mounts - allow us to bind the container to a folder on the desktop and when code is edited in th bound folder update it in the container
 
@@ -182,9 +211,7 @@ can make binds read only by adding :ro after the :/app
 
     docker run -p 3000:80 --rm --name feedback-node-44 -v feedback:/app/feedback -v "C:\Users\cfech\Desktop\code\udemy\docker\44_realNodeApp:/app:ro" -v /app/node_modules -v /app/temp -t feedback-node
 
---------------------- Bind Mounts ------------------------
-
---------------------- Environment Variables ------------------
+## Environment Variables ##
 
 Here we can set the port env in the cli as well,  using --env (or -e), we must also expose the correct port in the -p flag for this to work
 
@@ -195,8 +222,8 @@ Here we can set the port env in the cli as well,  using --env (or -e), we must a
 There are also build arguments that allow us to set a default but then also change with the --build-arg tag without changing the docker file ie: having 2 different ports for prod and dev
 
 
-# Section 4
-# Networking (67 Networking)
+# Section 4 Networking #
+- 67 Networking
 
 
 *Adding dockerignore files and ignoring files (e.g.) any local node modules we don't need will speed up build time*
@@ -241,8 +268,8 @@ Starting the app and connecting to the network
 
     docker run --name networking --rm -p 3000:3000 --network favorites-net -t networking
 
-# Section 5
-# Multi Container Apps (80 multiContainer)
+# Section 5 Multi Container Apps #
+- 80 MultiContainer 
 
 FOR DOCKER CONTAINER COMMUNICATION WE MUST EITHER EXPOSE THE PORTS TO LOCAL HOST OR PUT THEM ALL ON THE SAME NETWORK OR BOTH
 
@@ -275,7 +302,7 @@ Run the SPA, must have the -t here
     docker run --name 80frontend --rm -d -p 3000:3000 -t 80frontend
 
 
-# When running on the same network
+## Running Multi Container Apps On The Same Network ##
 
 create the network
 
@@ -297,7 +324,7 @@ Run the front end, we don't need the network fro the frontend because the front 
 
     docker run --name 80frontend --rm -p 3000:3000 -it 80frontend
 
- # Running Mongo DB with named volume
+ ## Running Mongo DB With A Named Volume ##
 
  This will allow us to persist data in our database
 
@@ -309,7 +336,7 @@ This will not create a username and password for this mongo db instance
 
     docker run --name mongodb -v data2:/data/db -d --network 80-goals-net -e MONGO_INITDB_ROOT_USERNAME=test -e MONGO_INITDB_ROOT_PASSWORD=test -t mongo 
 
-# Volumes and Binds for backend
+## Volumes And Binds For The Backend ##
 
 Adding volume for logs to backend so we save he logs after termination
 
@@ -369,7 +396,7 @@ Sets environment variables
 
     MONGODB_PASSWORD=test
 
-# Volumes and Binds for frontend
+## Volumes And Binds For frontend ##
 
 -v will bind the source code to the docker container for live source code updates 
 
@@ -379,12 +406,11 @@ Sets environment variables
 
 *Adding dockerignore files and ignoring files (e.g.) any local node modules we don't need will speed up build time*
 
-# Section 6
-
-## Docker Compose (91 dockerCompose)
+# Section 6 Docker Compose #
+- 91 dockerCompose
 *VIEW THE DOCKER-COMPOSE.YML FILE IN 91_DOCKER COMPOSE FOR MORE INFO*
 
-*DOCKER COMPOSE DOES NOT REPLACE THE DOCKER FILE BUT WORKS IN CONJUNCTION WITH IT TO BUILD MORE COMPLEX MULTI CONTAINER PROJECTS WHERE MULTIPLE CONTAINERS MUST TALK TO EACH OTHER. IT ALSO REMOVES THE NEED FOR LONG CLI COMMANDS*
+**DOCKER COMPOSE DOES NOT REPLACE THE DOCKER FILE BUT WORKS IN CONJUNCTION WITH IT TO BUILD MORE COMPLEX MULTI CONTAINER PROJECTS WHERE MULTIPLE CONTAINERS MUST TALK TO EACH OTHER. IT ALSO REMOVES THE NEED FOR LONG CLI COMMANDS**
 
 start a docker compose
 
@@ -412,8 +438,8 @@ Will just build the missing images but not start the containers
 
     docker-compose build
 
-# Section 7
-# Utility Containers and Executing Commands in Containers (102 Utilities)
+# Section 7 Utility Containers And Executing Commands In Containers #
+- 102 Utilities
 
 Run a container with node in it 
 
@@ -433,7 +459,8 @@ Run node and override default CMD
 
     docker run -it  node npm init
 
----------- Building Util Container (See docker file) --------
+## Building Utility Container ##
+- see docker file in project
 
     docker build -t node-util .
 
@@ -441,7 +468,7 @@ Start the docker container with a bind mount, this will allow us to run npm init
 
     docker run --name node-util -v C:\Users\cfech\Desktop\code\udemy\docker\102_Utilities:/app  -it node-util npm init
 
-### Entry points
+## Entry Points ##
 
  Now we just append init because of our npm entry point, no need to have the npm (and it wouldn't work) (see entrypoint in docker file)
 
@@ -451,27 +478,26 @@ Could install too
 
     docker run -v C:\Users\cfech\Desktop\code\udemy\docker\102_Utilities:/app  -it node-util install express
 
-### Run with docker compose
+## Run With Docker Compose ##
      
 docker-compose run (service) (cmd to be appended to entry point)
 
      docker-compose run --rm(optional) example init
 
 
-# Section 8 
-# More Complex multi container setup with php and laravel 
+# Section 8 More Complex Multi Container Setup With PHP And Laravel 
 
 Refer to 111_dockerLaravelPhp readme for more info
 
 # Section 9 
 
-# Deploying to AWS
+# Deploying to AWS #
 
 Bind mounts are not for production, only for development not production. They are useful because we don't have to rebuild the image with each code change
 
 In production the container should be stand alone, no code should be needed from the outside. So when we build for production we always user COPY instead of bind mounts
 
-## Steps to deploying container to EC2 from Docker hub ##
+## Steps To Deploy A Container To An EC2 From Docker Hub ##
 *Note: EC2 is your own managed machine, so the user is responsible for security, keeping the machine updated/compliant, scale etc ..*
 
 1. Go to https://aws.amazon.com/ create account/sign into the console. (Would need a credit card)
@@ -536,7 +562,7 @@ Should see the docker headings. No containers are yet running.
 
     B. Build the image on our local machine and push it to a registry (such as docker hub) and just pull it into our image
 
-## Adding image to docker hub ##
+## Adding Image To Docker Hub ##
 
 *open a new terminal, not in ssh*
 
@@ -581,11 +607,11 @@ Before we can view our webpage on the internet we must allow inbound http traffi
 
 4. Select source (in our case anywhere on ipv 4 but could put custom config here) and save rules.
 
-### ------------------------------------------------------------------------------
+---
 
 20. Now we can check our service by navigating to the IP address of the server, found in the instances page of aws.
 
-## Updating Image running on EC2 ##
+## Updating Image Running On An EC2 ##
 
 1. To update an image , rebuild and repush to docker hub as shown in the steps above
 
@@ -612,14 +638,14 @@ to stop the container
 
         sudo docker run -d --rm --name [your container name] -p 80:80 [your image name on docker hub]
 
-## Shutting down the container
+## Shutting Down The Container ##
 
 Run 
 
     sudo docker stop [container name]
 
 
-## AWS Billing / Free Tier / Stopping an Instance
+## AWS Billing / Free Tier / Stopping an Instance ##
 
 Aws free tier is limited and you can incur charges when using it if your leave your instances running constantly, especially if they are in an auto scale or load balancing group
 
@@ -641,14 +667,14 @@ Much more complicated
 *To use ECR search for it on AWS, create a repository and use the cli command to push your image. You will have to have aws cli configured for this*
 
 
-# Section 11 Kubernetes
+# Section 11 Kubernetes #
 
 Kubernetes is a tool that helps deploying monitor and scale docker applications.
 It does not replace docker but works hand in hand with it. There are a lot of similarities to that of AWS ECS provides including scaling and monitoring health of containers, relaunching if necessary. 
 
 ![image](./images/k8s-core.PNG)
 
-## Nodes #
+## Nodes ##
 ---
 
 ![image](./images/k8s-all-nodes.PNG)
@@ -667,21 +693,28 @@ The worker node is a machine (ie: ec2 instance) that host pods, pods host one or
 
 # Section 12 Installing Kubernetes
 
+## Installing Kubernetes (Windows) ##
 Have to install kubernetes
 
 https://kubernetes.io/releases/download/
 
-Install the Kubectl - kubernetes controller
-and Minikube for local development
-Minikube will configure kubectl to look for minikube environment, in the cloud it would be talking to the cloud provider
-
-https://minikube.sigs.k8s.io/docs/start/
-
-For windows need admin privileges to install
+Install: 
+- Kubectl - kubernetes controller, we use this to communicate with the master node to express what we want to happen (always need this locally)
 
 Once installed and path updated test Kubectl with to show version
 
     kubectl version --client
+
+- Minikube for local development, uses a vm on local machine that holds the cluster, can be run in most hypervisors:  vmware, virtual box etc.. or a docker container
+
+Minikube will configure kubectl to look for minikube environment, in the cloud it would be talking to the cloud provider
+
+https://minikube.sigs.k8s.io/docs/start/
+
+**For windows need admin privileges to install**
+
+
+## Running Kubernetes With Kubectl And Minikube ##
 
 Once minikube installed run to setup a kubernetes cluster on your machine 
 
@@ -708,22 +741,24 @@ Other Common Cmds
     minikube update-context
 
 
-Pod Object --- 
-Pod is the smallest unit Kubernetes interacts with, it contains and runs one (usually) or multiple containers.
+## Kubernetes Objects ##
+### Pod Object ###
+---
+- Pod is the smallest unit Kubernetes interacts with, it contains and runs one (usually) or multiple containers.
 
-Pods contain shared resources (volumes) for all Pod containers
+- Pods contain shared resources (volumes) for all Pod containers
 
-Pods have cluster internal ip address that can be used to send requests to the pod. 
+- Pods have cluster internal ip address that can be used to send requests to the pod. 
 
-Containers in the pod can communicate via localhost
+- Containers in the pod can communicate via localhost
 
-Pods are designed to be ephemeral(do not persist), all the resources in the pod are lost if a pod is replaced or moved. This a deliberate design decision.
+- Pods are designed to be ephemeral(do not persist), all the resources in the pod are lost if a pod is replaced or moved. This a deliberate design decision.
 
-Containers work like this as well. Could use volumes to persist data .
+- Containers work like this as well. Could use volumes to persist data .
 
-For pods managed by the user you would need a controller.
+- For pods managed by the user you would need a controller.
 
-185 - Deployment object -------------------
+### 185 Deployment Object  ###
 
 One of the key objects we work with
 
@@ -740,7 +775,7 @@ Can use autoscaling to create/delete more pods if necessary
 We can create multiple deployments to having multiple different or the same pods
 
 
----------------- TReadme 186_first-Kubernetes ----------------------------
+## FROM  Readme 186 first Kubernetes  ##
 
 
 Must build an image to run on the cluster
@@ -751,9 +786,12 @@ to push to docker hub must tag with docker hub repo name
 
     docker tag 186-first-kub cfech/first-kub:[version optional]
 
+then
+
     docker push cfech/first-kub
 
------------------ Imperative creation example ------------------------
+### Imperative Creation Example ###
+---
 
 
 Start the kubernetes cluster to start the master node 
@@ -780,7 +818,7 @@ To delete deployments
     kubectl delete deployment [deployment name]
 
 
-188 --------
+### 188 Service Object ###
 To expose a pod to the outside world we need a service, Pods have an internal IP by default but it changes when the pod is replaced
 
 2 problems, cant use internal ip to access from outside the cluster and 2 it will change when the pod is replaced
@@ -817,8 +855,8 @@ for local development we can get around that by
 
 will run a local host type server with a 127.0.0.1 ip
 
-
-190 ------------ Restarting containers --------------
+### 190 Restarting Containers ###
+---
 
 If your container has an error and crashes kubernetes will restart our container. This is a behavior of our deployment. We want 1 pod(container) always runing so it will match the required state.
 
@@ -827,8 +865,7 @@ can reproduce this by using the demo project in 186_first-kubernetes following t
     kubectl get pods 
 
 a couple times to see the different states of the pod. 
-
-191 --------- Scaling in action --------------------------
+### 191 Scaling in action ###
 
 Can scale up a deployment by 
 
@@ -844,8 +881,7 @@ Scales back down
 
     kubectl scale deployment/first-app --replicas=1
 
-192  ------------------ Updating deployments -----------------
-
+### 192 Updating Deployments ###
 rebuild and re push image 
 
     kubectl set image deployment/first-app first-kub=cfech/first-kub:tag
@@ -857,4 +893,4 @@ check rollout status
 
     kubectl rollout status deployment/first-app
 
-193 Deployment rollbacks and history
+### 193 Deployment Rollbacks and History ###

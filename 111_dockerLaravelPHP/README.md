@@ -1,4 +1,4 @@
-# This app doesnt really work. Some laravel/PHP thing 
+# This app doesn't really work. Some laravel/PHP thing 
 
 Example php laravel nginx web app with docker containers
 
