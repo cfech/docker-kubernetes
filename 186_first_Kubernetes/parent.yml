@@ -1,0 +1,36 @@
+#transposed from service.yml
+# best project to put service first
+# service will continually analyze all pods created in the cluster to see which ones it should be monitoring via selectors
+apiVersion: v1
+kind: Service
+metadata:
+  name: dec-service
+spec:
+  selector:
+    myApp: second-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer 
+# must use the '---' to separate resource definitions
+---
+#transposed from deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: 'second-app-deployment'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      myApp: second-app
+  template:
+    metadata:
+      labels:
+        myApp: second-app  
+    spec:
+      containers:
+        - name: second-nodejs-app
+          image: cfech/dec-kub
+

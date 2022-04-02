@@ -691,6 +691,8 @@ The worker node is a machine (ie: ec2 instance) that host pods, pods host one or
 
 ![image](./images/k8s-worker-nodes.PNG)
 
+![image](./images/k8s-vs-you.PNG)
+
 # Section 12 Installing Kubernetes
 
 ## Installing Kubernetes (Windows) ##
@@ -759,26 +761,28 @@ Other Common Cmds
 - For pods managed by the user you would need a controller.
 
 ### 185 Deployment Object  ###
+---
 
-One of the key objects we work with
+- One of the key objects we work with
 
-Create a deployment object which we give instructions about the number and types of pods we wish to deploy
+- Create a deployment object which we give instructions about the number and types of pods we wish to deploy
 
-Controls a number of pods
+- Controls one or multiple pods
 
-Set a desired target state and Kubernetes will do the leg work.
+- Set a desired target state (two pods with x containers running) and Kubernetes will do the leg work.
+ie: create the containers and pods, and places the pods on worker nodes with sufficient resources to handle them
 
-Deployments can be paused, rolled back or deleted.
+- Deployments can be paused, rolled back or deleted. IF some code has a bug we can just rollback and then fix the bug in due time
 
-Can use autoscaling to create/delete more pods if necessary 
+- Can use autoscaling to create/delete more pods if necessary by tracking cpu% and other metrics 
 
-We can create multiple deployments to having multiple different or the same pods
+- We can create multiple deployments to having multiple different pods. We do not typically create pods by themselves. We let the deployments do that
 
 
 ## FROM  Readme 186 first Kubernetes  ##
+---
 
-
-Must build an image to run on the cluster
+Must build an image to run on the a container in a pod on the cluster
 
     docker build -t 186-first-kub .
 
@@ -793,6 +797,7 @@ then
 ### Imperative Creation Example ###
 ---
 
+![image](./images/imperative%20vs%20declarative%20deployment.PNG)
 
 Start the kubernetes cluster to start the master node 
 
@@ -800,8 +805,12 @@ Start the kubernetes cluster to start the master node
 
 Kubernetes cluster runs in a vm so we cant just give it an image from our local machine, must pull it from a registry 
 
+- talking to the master node 
+- scheduler analyzes currently running pods and finds best node fro the new pods 
+
     kubectl create deployment first-app --image=cfech/first-kub
     [       cmd       ] [name of deployment ] [image location]
+
 
 
 Shows the deployments
@@ -819,35 +828,53 @@ To delete deployments
 
 
 ### 188 Service Object ###
-To expose a pod to the outside world we need a service, Pods have an internal IP by default but it changes when the pod is replaced
+---
+![image](./images/service_objectPNG.PNG)
 
-2 problems, cant use internal ip to access from outside the cluster and 2 it will change when the pod is replaced
 
-Cant rely on the pod to keep the same ip address. 
+![image](./images/behind%20the%20scenes%20-%20services.PNG)
 
-Service groups pods and gives them a shared ip address that wont change, and we can expose this address to the web. 
+- To expose a pod to the outside world we need a service
+-  Pods have an internal IP by default but it changes when the pod is replaced, which is pretty often
 
-To expose a pod created by a deployment run This will create the necessary service
+- 2 problems, cant use internal ip to access from outside the cluster and 2 it will change when the pod is replaced
+
+- Cant rely on the pod to keep the same ip address. 
+
+- Service groups pods and gives them a shared static ip address that wont change, and we can expose this address to the web. 
+
+**Clusters are not reachable the outside world at all without a service**
+
+- To expose a pod created by a deployment run This will create the necessary service
 
     kubectl expose deployment first-app --type=LoadBalancer --port=8080
    [ cmd   ]       [type] [deployment name] [use a load balancer for unique address for the service] [port exposed by project]
+
+Other "types" are 
+
+1. ClusterIp - gives a default IP only accessible inside the cluster
+
+2. NodePort - Will expose based on the IP of the worker node, can be accessed from outside
+
+3. LoadBalancer - Utilizes and LB and generates a unique address for this service, will also evenly distribute traffic across all pods, managed by this service. 
+
+- load balancer is only available if the infrastructure supports it (AWS and minikube do support it)
 
 to delete 
 
     kubectl delete service first-app [service name]
 
-load balancer is only available if the infrastructure supports it (AWS and minikube do support it)
 
-To see running service
+To see running services
 
     kubectl get services
 
-This will show us the services running and their internal/external IP's if using aws we would see an ip instead of pending but minikube is a vm on our host machine so does not have that capability
+- This will show us the services running and their internal/external IP's if using aws we would see an ip instead of pending but minikube is a vm on our host machine so does not have that capability
 
 ![image](./186_first_Kubernetes/services.PNG)
 
 
-for local development we can get around that by 
+for local development we can get around that by using the minikube specific service command. If we deploy on a cloud provider it should provide an external IP for us
 
     minikube service first-app
                     [app name]
@@ -858,16 +885,19 @@ will run a local host type server with a 127.0.0.1 ip
 ### 190 Restarting Containers ###
 ---
 
-If your container has an error and crashes kubernetes will restart our container. This is a behavior of our deployment. We want 1 pod(container) always runing so it will match the required state.
+If your container has an error and crashes kubernetes will restart the container. This is a behavior of our deployment. We want 1 pod(container) always running so the deployment will match the required state.
 
-can reproduce this by using the demo project in 186_first-kubernetes following the steps above (or just us my image on docker hub if still there) and launching the pod and adding a service with a load balancer, then navigating to the /error page which causes a crash, then back in cmd/terminal run
+can reproduce this by using the demo project in 186_first-kubernetes following the steps above (or just use my image on docker hub if still there), launching the pod and adding a service with a load balancer, then navigating to the /error page which causes a crash, then back in cmd/terminal run
 
     kubectl get pods 
 
 a couple times to see the different states of the pod. 
-### 191 Scaling in action ###
 
-Can scale up a deployment by 
+**Kubernetes does NOT create new containers/pods. It restarts the ones that have gone down**
+### 191 Scaling in action ###
+---
+
+If don't have auto scalding configured Can scale up a deployment by 
 
     kubectl scale deployment/first-app --replicas=3
     [    cmd ] [deployment/name]      [have 3 pods at all times]
@@ -882,15 +912,251 @@ Scales back down
     kubectl scale deployment/first-app --replicas=1
 
 ### 192 Updating Deployments ###
-rebuild and re push image 
+---
+rebuild and re push image to image registry
+
+kubectl will only pull images with unique tags
+
+    docker build cfech/first-kub:2 .
+
+push to repo
+
+    docker push cfech/first-kub:2
+
+- now will have a unique tag
+
+then can run 
 
     kubectl set image deployment/first-app first-kub=cfech/first-kub:tag
-    [cmd           ]   [deployment name]  [current conatiner] = [new image]
+    [cmd           ]   [deployment name]  [current container] = [new image]
 
-kubectl will only pull images with new tags
 
 check rollout status
 
     kubectl rollout status deployment/first-app
-
+                                        [deployment name]
 ### 193 Deployment Rollbacks and History ###
+---
+
+- if we try to use a tag (line 928) that doesn't exist it will will fail
+
+- can roll back this update by 
+
+        kubectl rollout undo deployment/first-app
+                                        [deployment name]
+
+- if we ant to revert to an older deployment must take a look at the deployment history
+
+        kubectl rollout history deployment/first-app
+
+![image](./images/deployment-history-example.PNG)
+
+- can get details with --revision flag
+
+        kubectl rollout history deployment/first-app --revision=3
+
+![image](./images/deployment-revision-details.PNG)
+
+- to revert back to deployment revision 1
+
+        kubectl rollout undo deployment/first-app --to-revision=1
+
+duplicate cmds: 
+
+        kubectl delete service first-app
+        kubectl delete deployment first-app
+
+### 194 Imperative vs Declarative Approach ###
+---
+
+![image](./images/imperative%20vs%20declarative%20deployment.PNG)
+
+- in imperative we always have to repeat the same commands
+- always had to run "docker run etc..." until we started using docker compose 
+- declarative allows us to write down all our k8's info into a resource definition
+
+- could define different types of objects k8's understands, such as pods, services and deployments
+
+called with 
+
+        kubectl apply -f example.yml
+
+### 195 Creating A Deployment Configuration File With Declarative Approach ###
+---
+- includes 196 Adding Pod and Container Specs
+
+- see 186_first_kubernetes/deployment.yml for notes
+
+https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+https://kubernetes.io/docs/reference/
+
+
+- to use this file, can have multiple -f is we want, then file path
+    
+    kubectl apply -f='deployment.yml'
+
+- without a selector will get 
+
+        error: error validating "deployment.yml": error validating data: ValidationError(Deployment.spec): missing required field "selector" in io.k8s.api.apps.v1.DeploymentSpec; if you choose to ignore these errors, turn validation off with --validate=false
+
+### 197 Working With Labels And Selectors ###
+---
+https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+
+- selectors take in label labels of pods, these labels to the deployment which pods belong to it so that the deployment can manage them
+
+#used to match the labels of the pods we want to be managed by this deployment
+
+        ...
+         #used to match the labels of the pods we want to be managed by this deployment
+        selector:
+        # for deployment we can use matchLabels or/and matchExpressions
+            matchLabels:
+            myApp: second-app  **XXX**
+        
+        #--------------- POD -------------------------
+            
+            ...
+            
+            # we need this because we will feed this label to the deployment selector in order for the deployment to be aware we want this pod(s) to be managed by it 
+            labels:
+            #values here can be anything we want 
+                myApp: second-app XXX **XXX**
+
+
+- Now we run 
+
+        kubectl apply -f='deployment.yml'
+
+- can check with 
+
+        kubectl get deployments
+
+
+### 198 Creating A Service Declaratively ###
+---
+![image](./images/service_objectPNG.PNG)
+
+- need a service to be able to view the deployment , see  186_first_kubernetes/service.yml
+
+- once defined we can then create the service with:  (syntax seems to be variable)
+
+        kubectl apply -f service.yml
+
+                        [file/file path]
+
+can check with 
+
+    kubectl get services
+
+- then must expose the service to minikube with 
+
+        minikube service dec-service
+                        [name of service]
+
+### 199 Updating And Deleting Resources While Using Declarative Approach ###
+---
+
+- can just change your yml file and reapply it
+
+- ie change replicas to 2 or image you want 
+- major benefit is you can just change the config file and re apply it. dont have to type long commands in succession to get this done
+
+Deleting resources: 
+
+could still use the delete commands individually
+
+or could call 
+
+    kubectl delete -f deployment.yml -f service.yml
+                    [file name]
+
+### 200 Multiple Vs Single Deployment Files ###
+---
+
+- could combine service.yml and deployment.yml into the same file and create both objects there
+
+- see ./186_first_Kubernetes/parent.yml
+
+- could have as many resource declarations in 1 file as you want, 
+
+- must include '---' between your resources
+
+- best project to put service first
+- a service will continually analyze all pods created in the cluster to see which ones it should be monitoring via selectors
+
+### 201 Labels And Selectors Continued ###
+---
+https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+
+- can use matchLabels or matchExpressions
+
+    selector:
+        matchLabels:
+        myApp: second-app
+
+- matchExpression allows us to have some more control by having a list of expressions that all have to be satisfied for the pods to be managed
+- expressions example, look for a key with myApp, operator (In, NotIn, Exists DoesNotExist), value of what we are looking for
+    matchExpressions:
+        selector:
+          - {key: myApp, operator: In , values: [second-app, something-else]  }
+
+**Could also use selectors on cli commands**
+- object must have a label, 
+
+    kubectl delete deployments,services -l group=example
+                 [what types to deploy ] -l  [ labelKey=labelValue ]
+
+### 202 Liveness Probes ###
+---
+https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+
+- how does kubernetes check if our pods and containers are healthy? 
+
+- we can configure this if we want
+- see ./186_first_kubernetes/deployment.yml 
+
+- can add the livenessProbe to our container configuration
+
+      ...
+      containers:
+      #name of our container
+        - name: second-nodejs-app
+          #image we want to use
+          image: cfech/dec-kub
+          livenessProbe: 
+          # send an http get to / on port 8080 (the port our container exposes), could have extra headers if we want
+            httpGet:
+              path: /
+              port: 8080
+            #the amount of time between checks, ie every 10 seconds
+            periodSeconds: 10
+            # wait 5 seconds before the fist check
+            initialDelaySeconds: 5
+
+-- WHAT IS THE DEFAULT
+
+### 203 A Closer Look At Configuration Options ###
+---
+
+- cna configure env variables,  the image, how the image is pulled and more
+
+- if we specify latest the service will always re-pull the latest image on pod restart
+
+        image: cfech/dec-kub:latest
+
+        vs
+
+        image: cfech/dec-kub
+
+or could set imagePullPolicy: (Always, Never or Preset), will either always pull it, never pull it or only pull if not present
+
+- if you the apply the update it will pull the new image (may need a pod restart?)
+
+    kubectl apply -f .\deployment.yml
+
+### 204 A Summary ###
+---
+![image](./images/k8s-vs-you.PNG)
+
+# 13 Managing Data & Volumes With Kubernetes #

@@ -1,0 +1,29 @@
+# here we define a service to connect to the deployments
+#https://kubernetes.io/docs/concepts/services-networking/service/#defining-a-service
+apiVersion: v1
+# now we create a service object
+kind: Service
+metadata:
+  name: dec-service
+  # can also have metadata on other objects such as deployments and services ( 201 )
+  labels:
+    group: example
+spec:
+# the selector of our pods, what pods are going to be including in this service?
+  selector:
+  # all pods which have this label will be managed, even if it has more than 1 label that is not listed here
+    myApp: second-app
+    # which ports the pods will be exposed on 
+  ports:
+  # protocol to be used
+    - protocol: TCP
+    # local port we want to expose it on 
+      port: 80
+      # target port inside of the container, what is your app configured to listen on?
+      targetPort: 8080
+      #could expose multiple ports if we wanted to
+    # - protocol: TCP
+    #   port: 443
+    #   targetPort: 443
+  # ClusterIp (exposes to the cluster), NodePrt or LoadBalancer (will provide with outside world address)
+  type: LoadBalancer 

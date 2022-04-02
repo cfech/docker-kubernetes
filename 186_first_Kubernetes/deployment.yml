@@ -1,0 +1,84 @@
+# filename is up to us
+
+#always have to specify kubernetes api version, can ussually find the best LTS in kubernetes docs
+# https://kubernetes.io/docs/concepts/workloads/controllers/deployment/ , https://kubernetes.io/docs/reference/
+apiVersion: apps/v1
+#what type of object does this create, Service, Job, Deployment ect...
+kind: Deployment
+#crucial data about the deployment object, https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#listmeta-v1-meta
+metadata:
+  name: 'second-app-deployment'
+  # can also have metadata on other objects such as deployments and services ( 201 )
+  labels:
+    group: example
+#specification of this object - start 196 --
+spec:
+# number of pods we want, if we don't explicitly set it the default is 1, if we chose 4 it will be 3 pods with the SAME EXACT CONFIGURATION
+  replicas: 1
+  #used to match the labels of the pods we want to be managed by this deployment
+  selector:
+  # for deployment we can use matchLabels or/and matchExpressions
+    matchLabels:
+      myApp: second-app
+    # expressions example, look for a key with myApp, operator (In, NotIn, Exists DoesNotExist), value of what we are looking for
+    # matchExpressions:
+    #   - {key: myApp, operator: In , values: [second-app, something-else]  }
+#--------------- POD -------------------------
+  # definition of the pods that will be created, pod is a new object so we need new metadata, don't need to add a kind here because template is always type: PodTemplateSpec
+  template:
+    metadata:
+    # we need this because we will feed this label to the deployment selector in order for the deployment to be aware we want this pod(s) to be managed by it 
+      labels:
+      #values here can be anything we want 
+        myApp: second-app
+        #could have multiple labels if we want 
+        # second: label
+    # spec for our pod configuration
+    spec:
+    # list of container(s) that will be part of this pod, this is a list so has to be defined with "-"
+      containers:
+      #name of our container
+        - name: second-nodejs-app
+          #image we want to use
+          image: cfech/dec-kub
+          #always pull the latest image
+          imagePullPolicy: Always
+          # how do we check if our containers are still alive? https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+          livenessProbe: 
+          # send an http get to / on port 8080 (the port our container exposes), could have extra headers if we want
+            httpGet:
+              path: /
+              port: 8080
+            #the amount of time between checks, ie every 10 seconds
+            periodSeconds: 10
+            # wait 5 seconds before the fist check
+            initialDelaySeconds: 5
+        #could have multiple containers in our pod by  
+        # - name: ...
+        #   image: ...
+        
+
+# to use this file, can have multiple -f is we want, then file path
+# kubectl apply -f=deployment.yml
+
+
+
+#bare minimum needed 
+  
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: 'second-app-deployment'
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       myApp: second-app
+#   template:
+#     metadata:
+#       labels:
+#         myApp: second-app
+#     spec:
+#       containers:
+#         - name: second-nodejs-app
+#           image: cfech/dec-kub
