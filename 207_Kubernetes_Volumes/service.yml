@@ -1,0 +1,15 @@
+#see 186_first_Kubernetes\service.yml for more
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-story-volume
+spec:
+  selector:
+    app: k8s-story-volume
+  ports:
+    - protocol: "TCP"
+    #port to expose on
+      port: 80
+      #port container exposes
+      targetPort: 3000
+  type: LoadBalancer

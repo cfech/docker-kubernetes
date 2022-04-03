@@ -1,0 +1,28 @@
+#https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
+#https://kubernetes.io/docs/concepts/storage/volumes/#hostpath-configuration-example
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  #name is up to you
+  name: host-pv
+#config for pv, this will setup a type HostPath Persistent Volume as a standalone volume that any of our pods can attach to and it will be independent of the pods (but not the nodes, which is hostPath specific ), config will hold up for any other types we want to use
+spec:
+# as an admin we may want to control how much of this volume can be used by the specific pods
+  capacity:
+  # storage is up to 1 Gi of space - https://kubernetes.io/docs/concepts/storage/persistent-volumes/#capacity
+    storage: 1Gi
+  # FileSystem or Block, which type of storage do we want to use? https://www.computerweekly.com/feature/Storage-pros-and-cons-Block-vs-file-vs-object-storage
+  volumeMode: FileSystem
+  # how is this PV going to be accessed? we can specify the options and the pods can then express which mode they want, 
+  #ReadWriteOnce - can be claimed by multiple pods but must be on the same node, 
+  #ReadOnlyMany - read only but may be claimed by many pods and multiple nodes - not available in hotPath type because hostPath only supports 1 node, 
+  #ReadWriteMany, ditto but read and write
+  #https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes
+  accessModes:
+    - ReadWriteOnce
+    # - ReadOnlyMany
+    # - ReadWriteMany
+  #what type of volume do we want?
+  hostPath:
+    path: /data
+    type: DirectoryOrCreate

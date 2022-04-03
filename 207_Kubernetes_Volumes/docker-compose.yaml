@@ -2,8 +2,10 @@ version: "3"
 services:
   stories:
     build: .
+    # save the contents of the file in the app (workdir)/story folder
     volumes:
-      - stories:/app/story
+      # can add customer location with [local path] : container path 
+      - C:\Users\cfech\Desktop\udemy\docker\kubernetes_volumes:/app/story
     ports:
       - 80:3000
 volumes:

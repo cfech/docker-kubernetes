@@ -1,0 +1,33 @@
+# see 186_first_Kubernetes\deployment.yml for more info
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: volumes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-story-volume
+  #pod template
+  template:
+    metadata:
+      labels:
+        app: k8s-story-volume
+    spec:
+      containers:
+        - name: volume-story
+          image: cfech/k8s-volume:1
+          # imagePullPolicy: Always
+          #defining where the available volumes should be mounted
+          volumeMounts: 
+          # path inside of the container that holds the data we want to be saved, where the directory should be mounted, this path is also defined in the docker.compose.yml
+            - mountPath: /app/story
+            # could have multiple volumes available to us so we define the name of the one we want to be using
+              name: story-volume
+      #defining the volume that is part of the pod, all the containers in the pod can then use these volumes
+      volumes:
+        - name: story-volume
+          #volume type and type config, {} specifies use the default settings
+          # empty dir will keep an empty directory alive as long as our pod is alive, this will survive container restarts and all our containers in the pod can talk to it
+          emptyDir: {}

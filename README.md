@@ -271,7 +271,7 @@ Starting the app and connecting to the network
 # Section 5 Multi Container Apps #
 - 80 MultiContainer 
 
-FOR DOCKER CONTAINER COMMUNICATION WE MUST EITHER EXPOSE THE PORTS TO LOCAL HOST OR PUT THEM ALL ON THE SAME NETWORK OR BOTH
+**FOR DOCKER CONTAINER COMMUNICATION WE MUST EITHER EXPOSE THE PORTS TO LOCAL HOST OR PUT THEM ALL ON THE SAME NETWORK OR BOTH**
 
 runs the mongo db db, exposing -p 27017 which is the default for the image
 
@@ -1160,3 +1160,223 @@ or could set imagePullPolicy: (Always, Never or Preset), will either always pull
 ![image](./images/k8s-vs-you.PNG)
 
 # 13 Managing Data & Volumes With Kubernetes #
+
+- how do we store and manage data? 
+- how will our data survive if oru containers or pods shut down?
+
+### 207 Volume recap ###
+---
+- run with 
+
+        docker compose up -d 
+                            [detached] ( optional)
+
+- docker volumes typically store C:\ProgramData\docker on windows
+- can add specific destination by 
+
+        volumes:
+            - C:\Users\cfech\Desktop\udemy\docker\kubernetes_volumes:/app/story
+
+            [local path ] : [container path]
+
+- ./207_Kubernetes_Volumes/docker-compose.yaml
+
+### 208 Kubernetes and Volumes More Than Docker Volumes ###
+---
+![image](./images/section_13/state.PNG)
+
+- user generated data needs to persist
+- intermediate data is only needed temporarily and usually destroyed eventually
+- both type generally need to survive container restarts
+- volumes help with this
+
+![image](./images/section_13/volumes.PNG)
+
+- how can we have kubernetes add volumes to the containers it starts/manages for us?
+
+### 209 Kubernetes Volumes VS Docker Volumes ###
+---
+
+![image](./images/section_13/k8s'_and_volumes.PNG)
+
+- kubernetes has powerful volume support
+- local = folder on worker node where pod is running 
+- cloud provider volumes ie: aws, google cloud, azure etc..
+- by default volume lifetime is tied to pod lifetime since volumes exist inside the pods 
+- survives container restarts but not pod restarts
+
+![image](./images/section_13/k8's_vs_docker_volumes.PNG)
+
+- kubernetes allows us more control over where the data is stored
+- docker volumes are folders/directories somewhere on your host machine 
+
+*c:\Program Data\Docker by default*
+
+### 210 Creating A New Deployment And Service ###
+ 1. write deployment and service yml ./207_Kubernetes_Volumes/deployment.yml, ./207_Kubernetes_Volumes/service.yml
+ 2. create the image and push to docker hub (or registry of your choice)
+
+        docker build -t cfech/k8s-volume .
+        docker push cfech/k8s-volume
+
+3. now run these deployment and service files to spin up the correct service
+- check minikube is running: 
+        
+        minikube status
+
+- if it is not 
+
+        minikube start
+
+- once running to spin up required k8s objects 
+
+        kubectl apply -f deployment.yml -f service.yml
+
+- then expose service to minikube 
+
+        minikube service k8s-story-volume
+
+---
+side note to delete service 
+
+        kubectl delete service first-app [service name]
+
+---
+
+### 211 Getting Started With Kubernetes And Volumes ###
+---
+
+https://kubernetes.io/docs/concepts/storage/volumes/
+
+- can find all the types of volumes at the link above
+- there are many types of volumes you can use with kubernetes
+
+### 212 EmptyDir Volume Type ###
+---
+
+https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
+
+    "An emptyDir volume is first created when a Pod is assigned to a node, and exists as long as that Pod is running on that node. As the name says, the emptyDir volume is initially empty. All containers in the Pod can read and write the same files in the emptyDir volume, though that volume can be mounted at the same or different paths in each container. When a Pod is removed from a node for any reason, the data in the emptyDir is deleted permanently.
+
+    Note: A container crashing does not remove a Pod from a node. The data in an emptyDir volume is safe across container crashes.
+
+    Some uses for an emptyDir are:
+
+    - scratch space, such as for a disk-based merge sort
+    - checkpointing a long computation for recovery from crashes
+    - holding files that a content-manager container fetches while a webserver container serves the data
+    - Depending on your environment, emptyDir volumes are stored on whatever medium that backs the node such as disk or SSD, or network storage. However, if you set the emptyDir.medium field to "Memory", Kubernetes mounts a tmpfs (RAM-backed filesystem) for you instead. While tmpfs is very fast, be aware that unlike disks, tmpfs is cleared on node reboot and any files you write count against your container's memory limit."
+
+- volumes are pod specific so we must define them in the same place we define a pod
+- in this case .\207_Kubernetes_Volumes\deployment.yml
+
+**To Update Deployment**
+---
+1. edit app
+2. rebuild and tag the image 
+
+        docker build -t cfech/k8s-volume:1 .
+
+3. push the image to registry
+
+        docker push cfech/k8s-volume:1
+
+
+4. update deployment.yml with the tag
+
+        spec:
+            containers:
+                - name: volume-story
+                image: cfech/k8s-volume:1
+
+5. apply update to deployment 
+
+        kubectl apply -f .\deployment.yml
+
+- could also use 
+
+        spec:
+            containers:
+                - name: volume-story
+                image: cfech/k8s-volume:1
+                imagePullPolicy: Always
+
+- and skip tagging the image so the latest one is always pulled but may have to restart the container for that
+---
+
+- After this update a new container will be started and our data will not persist, so we want to use a volume to solve this issue
+
+see .\207_Kubernetes_Volumes\deployment.yml for volume configuration
+
+
+### 213 Volume Type  hostPath ###
+---
+https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
+
+- what happens if we have multiple replicas, with multiple pods? how do we allow pods to share volumes so no matter what container you hit you get the volume data? 
+
+- not pod specific 
+
+- see 207_Kubernetes_Volumes\deployment-hostpath.yml for configuration
+
+- hostpath could also be useful if we want to share some data with a pod at start
+
+- not really useful if we have multiple nodes ( minikube only provides 1 node)
+- real world apps usually have multiple nodes
+
+### 214 Understanding CSI Volume Type ###
+---
+
+https://kubernetes.io/docs/concepts/storage/volumes/#csi
+
+
+- Container Storage Interface
+
+        "defines a standard interface for container orchestration systems (like Kubernetes) to expose arbitrary storage systems to their container workloads."
+
+- this allows anyone to build drivers to interact with this interface
+- if someone has built a drive for the storage type then we could connect any storage type in the world
+
+
+### 215 From Volumes To Persistent Volumes ###
+---
+https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+
+![image](./images/section_13/k8s_persistant_volumes.PNG)
+
+- we have a need for pod and node independent volumes when deploying in the real world
+
+- always persist, pod and node independence
+
+- persistent volumes give us full power over how the volume is configured, this is something aws ebs, azure etc.. dont offer
+
+![image](./images/section_13/volumes_to_persistent_1.PNG)
+
+![image](./images/section_13/persistant_volumes_and_claims.PNG)
+
+- you create persistent volume claims are part of a pod , which reach out to standalone entities, the PV and ask to write/read to them
+- could have multiple claims to multiple PV's
+
+
+https://kubernetes.io/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes
+
+### 216 Defining A Persistent Volume ###
+---
+
+- example uses hostpath but this is only for testing. 
+- hostpath only works in single node environments ( like local dev with minikube)
+- hostpath is not meant to be used (and prob wont work) in a prod environment
+- the concepts should remain consistent no matter what type of PV you are using though. 
+
+- see 207_Kubernetes_Volumes\host-pv.yml for config
+
+https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
+
+https://kubernetes.io/docs/concepts/storage/volumes/#hostpath-configuration-example
+
+https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes
+
+### 217 Creating A Persistent Volume Claim ###
+---
+
+In oder to connect to the   PV defined in 207_Kubernetes_Volumes\host-pv.yml we must tell our pods to connect or make a claim to it
