@@ -1321,7 +1321,7 @@ https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
 
 - hostpath could also be useful if we want to share some data with a pod at start
 
-- not really useful if we have multiple nodes ( minikube only provides 1 node)
+- not really useful if we have multiple nodes ( minikube only provides 1 node), data will be removed when node is destroyed
 - real world apps usually have multiple nodes
 
 ### 214 Understanding CSI Volume Type ###
@@ -1380,3 +1380,82 @@ https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes
 ---
 
 In oder to connect to the   PV defined in 207_Kubernetes_Volumes\host-pv.yml we must tell our pods to connect or make a claim to it
+
+- see 207_Kubernetes_Volumes\host-pvc.yml for config
+
+- we write the claim which can then be used by pods to make the claim on the PV 
+
+- See 207_Kubernetes_Volumes\deployment-pvc.yml for pod claim configuration
+- with this config data will be fully independent from pods and nodes, if a pod or node is terminated the data should persist
+
+
+### 218 Using A Claim In A Pod ###
+---
+ https://kubernetes.io/docs/concepts/storage/storage-classes/
+
+ - storage classes - defines how storage should be provisioned , minikube comes with a standard storage class 
+
+ - have to reference this in the host-pv and host-pvc.yml files
+
+ - now ready to apply the files 
+
+-  creating pv
+
+        kubectl apply -f host-pv.yml
+
+- creating claim
+        
+        kubectl apply -f host-pvc.yml
+
+-  updating deployment to use the claim 
+
+        kubectl apply -f deployment.-pvc.yml
+
+
+- to see your configured/existing PV
+
+        kubectl get pv
+
+
+- example output 
+
+            NAME      CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM              STORAGECLASS   REASON   AGE 
+            host-pv   1Gi        RWO            Retain           Bound    default/host-pvc   standard                4m3s
+
+- to see all claims 
+
+        kubectl get pvc
+
+- example output
+
+        NAME       STATUS   VOLUME    CAPACITY   ACCESS MODES   STORAGECLASS   AGE  
+        host-pvc   Bound    host-pv   1Gi        RWO            standard       4m12s
+
+**Persistent Volumes are independent from any pods, nodes or containers, this gives us pod and node independence, this allows us to store data so it will not be lost**
+
+
+### 219 Volumes Vs Persistent Volumes ###
+---
+
+![image](./images/section_13/normal_vs_persistant_volumes.PNG)
+
+- volumes allow you to persist data, both allow you to keep data through a container restart
+
+**Normal Volumes**
+- do help you persist data
+- independent from containers but not pods
+- pod is removed data is removed for emptyDir type
+- other value types may not lose it such as data stored in cloud config
+- volume config is included in same file as the pod config
+
+
+**Persistent Volumes**
+- not defined with pods, but stand alone resources
+- claimed with persistent volume claim
+- easy to reuse/administer across many pods
+- work better for bigger projects
+- gives pod and nod independence
+- data will not be lost if pod/node is destroyed or launched on a different node
+
+### 220 Using Environment Variables ###
+---

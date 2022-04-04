@@ -12,7 +12,9 @@ spec:
   # storage is up to 1 Gi of space - https://kubernetes.io/docs/concepts/storage/persistent-volumes/#capacity
     storage: 1Gi
   # FileSystem or Block, which type of storage do we want to use? https://www.computerweekly.com/feature/Storage-pros-and-cons-Block-vs-file-vs-object-storage
-  volumeMode: FileSystem
+  volumeMode: Filesystem
+  # what storage class is this PV going to use? In other words, how is the memory going to be configured. Standard is the default that comes with minikube
+  storageClassName: standard
   # how is this PV going to be accessed? we can specify the options and the pods can then express which mode they want, 
   #ReadWriteOnce - can be claimed by multiple pods but must be on the same node, 
   #ReadOnlyMany - read only but may be claimed by many pods and multiple nodes - not available in hotPath type because hostPath only supports 1 node, 

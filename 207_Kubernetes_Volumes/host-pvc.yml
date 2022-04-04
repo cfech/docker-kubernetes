@@ -1,0 +1,19 @@
+#https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+# name of our claim
+  name: host-pvc
+# what pv do we want to place a claim on?
+spec:
+# name of our volume to claim, coming from host-pv.yml, could also claim by resource by "Dynamic Volume Provisioning" here we are "Static Provisioning" 
+  volumeName: host-pv
+  # what mode do we want to claim by? Only supported way for minikube is readWriteOnce
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  #counter part for the compactly key in host-pv.yml
+  # how much resources do we want to request?
+  resources:
+    requests:
+      storage: 1Gi
