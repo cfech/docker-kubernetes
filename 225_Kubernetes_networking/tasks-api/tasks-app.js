@@ -5,6 +5,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 
+const { exec } = require("child_process");
+
+
+
 const filePath = path.join(__dirname, process.env.TASKS_FOLDER, 'tasks.txt');
 
 const app = express();
@@ -52,6 +56,20 @@ app.post('/tasks', async (req, res) => {
     fs.appendFile(filePath, jsonTask + 'TASK_SPLIT', (err) => {
       if (err) {
         console.log(err);
+        console.log("===================")
+        exec("ls -la", (error, stdout, stderr) => {
+          if (error) {
+              console.log(`error: ${error.message}`);
+              return;
+          }
+          if (stderr) {
+              console.log(`stderr: ${stderr}`);
+              return;
+          }
+          console.log(`stdout: ${stdout}`);
+      });
+
+      console.log("===================")
         return res.status(500).json({ message: 'Storing the task failed.' });
       }
       res.status(201).json({ message: 'Task stored.', createdTask: task });

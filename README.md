@@ -1517,3 +1517,114 @@ const filePath = path.join(__dirname, process.env.STORY_FOLDER, 'text.txt');
 - then apply the deployment update
 
         kubectl apply -f deployment-pvc.yml
+
+
+# Some Object CLI Commands #
+
+        kubectl get pods
+        kubectl get services
+        kubectl get deployments
+        kubectl get pv
+        kubectl get pvc
+        kubectl get configmap
+
+         kubectl delete -f deployment.yml -f service.yml
+
+         kubectl delete -f .\deployment-pvc.yml -f .\service.yml -f .\host-pv.yml -f .\host-pvc.yml -f .\env.yml
+
+# 14 Kubernetes Networking #
+
+- Our containers must be able to communicate with us as well as the outside world 
+- another look atr services
+- pod-internal communication (pod with multiple containers)
+- pod to pod communication
+
+
+- using postman to communicate with these pods
+
+### 225 Starting Project And Goal ###
+---
+- auth-api - verifies and generates user tokens
+- tasks-api - returns a list of stored tasks or creates new tasks ( needs a token to identify a logged in user and will reach out to auth api to verify user)
+- users-api  - creating and logging in user
+
+**Goal of this is to configure kubernetes to allow these 3 containers to talk to each other**
+
+send request to login -> users api verifies login -> reaches out to auth api which sends back a token
+
+### 226 Creating First Deployment ###
+---
+
+configuring user api for deployment
+1. build image
+
+        docker build -t cfech/kub-225-user-app .
+
+2. push to docker hub
+
+        docker push cfech/kub-225-user-app
+
+3. write deployment yml, see 225_Kubernetes_networking\kubernetes\users-deployment.yml
+4. apply the deployment kubectl apply -f .\users-deployment.yml
+
+### 227 Another Look At Services ###
+---
+
+- need a service to reach the user-api from the outside world
+- services allow us to connect to the outside world by providing us a **STATIC IP** , and being configured to allow public access
+
+1. write service yml 225_Kubernetes_networking\kubernetes\users-service.yml
+2. apply service 
+
+        kubectl apply -f .\users-service.yml
+
+- for minikube must expose service 
+
+        minikube service users-service 
+                        [service name]
+
+### 228 Multiple Containers In 1 Pod ###
+---
+
+- we want containers in the same pods communicate with each other
+
+- users -> auth api
+- have to pass in urls through environment variable to setup communication
+
+ex: from users-api 
+
+         const hashedPW = await axios.get(`http://${process.env.AUTH_ADDRESS}/hashed-password/` + password);
+
+- after have a working users api have to create an auth API container
+
+1. build image
+
+        docker build -t cfech/kub-225-auth-app .
+
+2. push to docker hub
+
+        docker push cfech/kub-225-auth-app
+
+3. write deployment yml, since we want to add this to the same pod as our users-api we just add it to the   225_Kubernetes_networking\kubernetes\users-deployment.yml
+- this includes providing the env variable with for internal pod communication
+4. apply the deployment 
+
+        kubectl apply -f .\users-deployment.yml
+
+
+- no need to update service file with the auth port because auth is only a pod internal, we only expose the port published by the users api
+
+### 229 Pod Internal Communication ###
+---
+
+- when two containers are in the same pod, k8's allows you to send a request to local host using the port exposed by the other container
+
+so can communicate from user-api to auth-api @ localhost:80
+
+- see env for config 225_Kubernetes_networking\kubernetes\users-deployment.yml
+
+auth in docker compose, localhost in kubernetes
+
+- then apply the deployment and it will create a pod with 2 containers that have internal communication while users-api has external connectivity
+
+        kubectl apply -f .\users-deployment.yml

@@ -1,0 +1,27 @@
+# sets up deployment for users-api container
+# deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users
+# pod
+  template: 
+    metadata:
+      labels:
+        app: users
+# container
+    spec:
+      containers:
+        - name: users
+        # k8's will always pull the latest, alternative to tags or pull policy
+          image: cfech/kub-225-user-app:latest
+          env:
+            - name: AUTH_ADDRESS
+              value: localhost
+        - name: auth
+          image: cfech/kub-225-auth-app:latest
