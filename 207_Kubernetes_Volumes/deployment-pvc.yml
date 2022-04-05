@@ -17,7 +17,18 @@ spec:
     spec:
       containers:
         - name: volume-story
-          image: cfech/k8s-volume:1
+          image: cfech/k8s-volume:2
+          # configuring environment variable that will be passed into our container
+          env:
+            - name: STORY_FOLDER
+              # value: 'story'
+              # example configuring with configMap
+              valueFrom:
+                configMapKeyRef: 
+                # from config map file env.yml
+                  name: env-config-map
+                  # also from env.yml, will pull the value from this key and set it to the story folder env var
+                  key: folder
           # imagePullPolicy: Always
           #defining where the available volumes should be mounted
           volumeMounts: 

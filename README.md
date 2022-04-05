@@ -1459,3 +1459,61 @@ In oder to connect to the   PV defined in 207_Kubernetes_Volumes\host-pv.yml we 
 
 ### 220 Using Environment Variables ###
 ---
+
+- have to pass envs in almost all apps, 
+
+- here we have to pass in the STORY_FOLDER variable
+
+207_Kubernetes_Volumes\app.js
+
+const filePath = path.join(__dirname, process.env.STORY_FOLDER, 'text.txt');
+
+- this is set in the deployment.yml configuration where  we define the container
+
+- see 207_Kubernetes_Volumes\deployment-pvc.yml for env config
+
+- inline env
+
+            spec:
+            containers:
+                - name: volume-story
+                image: cfech/k8s-volume:2
+                env:
+                    - name: STORY_FOLDER
+                    value: 'story'
+
+### 221 Environment Variables And ConfigMaps ###
+---
+
+- https://kubernetes.io/docs/concepts/configuration/configmap/
+
+- don't have to add the environment variable in the container spec, could keep them in a different file so different container specs can use the same environment variable file
+
+- see 207_Kubernetes_Volumes\env.yml for config
+
+
+- Can create the config map 
+
+        Kubectl apply -f env.yml
+
+- check config maps 
+
+        kubectl get configmap
+
+- Now have to tell our container to use it 
+
+- example of pulling from config map, pulling env from 207_Kubernetes_Volumes\env.yml to 207_Kubernetes_Volumes\deployment-pvc.yml
+
+        containers:
+        - name: volume-story
+          image: cfech/k8s-volume:2
+          env:
+            - name: STORY_FOLDER
+              valueFrom:
+                configMapKeyRef: 
+                  name: env-configMap
+                  key: folder
+
+- then apply the deployment update
+
+        kubectl apply -f deployment-pvc.yml
