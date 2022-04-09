@@ -50,7 +50,7 @@ https://www.udemy.com/course/docker-kubernetes-the-practical-guide/
 
 # Shell Commands #
 
- Show all running containers
+Show all running containers
 
     docker ps
 
@@ -693,7 +693,7 @@ The worker node is a machine (ie: ec2 instance) that host pods, pods host one or
 
 ![image](./images/k8s-vs-you.PNG)
 
-# Section 12 Installing Kubernetes
+# Section 12 Installing Kubernetes #
 
 ## Installing Kubernetes (Windows) ##
 Have to install kubernetes
@@ -973,9 +973,9 @@ duplicate cmds:
 
 - in imperative we always have to repeat the same commands
 - always had to run "docker run etc..." until we started using docker compose 
-- declarative allows us to write down all our k8's info into a resource definition
+- declarative allows us to write down all our kubernetes info into a resource definition
 
-- could define different types of objects k8's understands, such as pods, services and deployments
+- could define different types of objects kubernetes understands, such as pods, services and deployments
 
 called with 
 
@@ -1068,8 +1068,8 @@ could still use the delete commands individually
 
 or could call 
 
-    kubectl delete -f deployment.yml -f service.yml
-                    [file name]
+        kubectl delete -f deployment.yml -f service.yml
+                        [file name]
 
 ### 200 Multiple Vs Single Deployment Files ###
 ---
@@ -1104,8 +1104,8 @@ https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 **Could also use selectors on cli commands**
 - object must have a label, 
 
-    kubectl delete deployments,services -l group=example
-                 [what types to deploy ] -l  [ labelKey=labelValue ]
+        kubectl delete deployments,services -l group=example
+                    [what types to deploy ] -l  [ labelKey=labelValue ]
 
 ### 202 Liveness Probes ###
 ---
@@ -1153,7 +1153,7 @@ or could set imagePullPolicy: (Always, Never or Preset), will either always pull
 
 - if you the apply the update it will pull the new image (may need a pod restart?)
 
-    kubectl apply -f .\deployment.yml
+        kubectl apply -f .\deployment.yml
 
 ### 204 A Summary ###
 ---
@@ -1228,7 +1228,7 @@ or could set imagePullPolicy: (Always, Never or Preset), will either always pull
 
         minikube start
 
-- once running to spin up required k8s objects 
+- once running to spin up required kubernetes objects 
 
         kubectl apply -f deployment.yml -f service.yml
 
@@ -1528,9 +1528,9 @@ const filePath = path.join(__dirname, process.env.STORY_FOLDER, 'text.txt');
         kubectl get pvc
         kubectl get configmap
 
-         kubectl delete -f deployment.yml -f service.yml
+        kubectl delete -f deployment.yml -f service.yml
 
-         kubectl delete -f .\deployment-pvc.yml -f .\service.yml -f .\host-pv.yml -f .\host-pvc.yml -f .\env.yml
+        kubectl delete -f .\deployment-pvc.yml -f .\service.yml -f .\host-pv.yml -f .\host-pvc.yml -f .\env.yml
 
 # 14 Kubernetes Networking #
 
@@ -1619,7 +1619,7 @@ ex: from users-api
 ### 229 Pod Internal Communication ###
 ---
 
-- when two containers are in the same pod, k8's allows you to send a request to local host using the port exposed by the other container
+- when two containers are in the same pod, kubernetes allows you to send a request to local host using the port exposed by the other container
 
 so can communicate from user-api to auth-api @ localhost:80
 
@@ -1640,6 +1640,12 @@ auth in docker compose, localhost in kubernetes
 - this will include multiple services, with the service for the auth api being cluster internal
 - we need pod to pod communication inside of a cluster - so we want a type 
 
+- have to build auth image and push to docker hub
+
+        docker build -t cfech/kub-225-auth-app .
+        docker push  -t cfech/kub-225-auth-app
+
+
 ### 231 Pod to Pod Communication With IP Addresses and Environment Variables ###
 ---
 
@@ -1659,7 +1665,7 @@ https://stackoverflow.com/questions/45759205/what-environment-variables-are-crea
 
 - see 225_Kubernetes_networking\users-api\users-app.js
 
-        //231, using built in k8's env
+        //231, using built in kubernetes env
         const response = await axios.get(
             `http://${process.env.AUTH_SERVICE_SERVICE_HOST}/token/` + hashedPassword + '/' + password
         );
@@ -1698,14 +1704,595 @@ https://kubernetes.io/docs/tasks/administer-cluster/coredns/
 
 - If we want pods to talk to each other we need services for the different pods to give static ip, we can access this ip by 
 1. manually generating it and pasting it into an env 
-2. using the built in k8's env variables
+2. using the built in kubernetes env variables
 3. using the generated domain name by coredns 
 
 
 **Also a Challenge**
 - write the deployment and service for the tasks app, modify the code, push the container to get it working with the other services
 
+- part is to build task app image and push to docker hub
+        
+        docker build -t cfech/kub-225-task-app .
+        docker push  -t cfech/kub-225-task-app
+
+
 ### 235 Adding A Containerized Frontend ###
 ---
+- have to containerize the frontend and push it to docker hub
 
 
+        docker build -t cfech/kub-225-frontend .
+        docker push cfech/kub-225-frontend
+
+will get a cors error so have to add some code to tasks api to handle this, see 225_Kubernetes_networking\tasks-api\tasks-app.js
+
+- here to show a frontend that is not postman can communicate with our backend 
+
+### 236 Deploying A Frontend Container With Kubernetes ###
+---
+
+- creating a new deployment because not tightly coupled or directly dependent on either tasks, users, or auth api
+
+- see 225_Kubernetes_networking\kubernetes\frontend-deployment.yml and 225_Kubernetes_networking\kubernetes\frontend-service.yml for configuration
+
+- build and push frontend to docker hub
+
+- apply the changes
+
+        kubectl apply -f frontend-deployment.yml -f frontend-service.yml
+
+- still have to deal with getting the ip/domain name of our other apps to the frontend 
+
+by hard coding in a known domain name or ip/port 
+
+- could still use these methods if the code is running on the server, not in the browser
+
+
+1. manually generating it and pasting it into an env 
+2. using the built in kubernetes env variables
+3. using the generated domain name by coredns 
+
+
+### 237 Using A Reverse Proxy For The Frontend ###
+---
+
+- can configure our web server to redirect our web request to a different location based on structure and/or target
+
+- see 225_Kubernetes_networking\frontend\conf\nginx.conf
+
+*Side Note*
+- nginx config and reverse proxy explanation
+
+        server {
+            - port to listen on
+        listen 80;
+        
+        - any request  that comes in to /api... redirect to this location
+        location /api {
+            proxy_pass http://127.0.0.1:63827;
+        }
+
+        - default location for all requests "/",
+        - root location of the html file
+        - types of index to look for
+        -if you dont find index.html throw 404
+        location / {
+            root /usr/share/nginx/html;
+            index index.html index.htm;
+            try_files $uri $uri/ /index.html =404;
+        }
+
+        - location of the config file inside the container
+        include /etc/nginx/extra-conf.d/*.conf;
+        }`
+
+
+- The nginx config runs on the server itself, inside of the cluster not inside of the browser like react/js code
+
+- so this means that we can use the built in kubernetes variables, such as  using the generated domain name by coredns  [tasks-service.default]
+
+see ### 232 Using DNS for Pod to Pod Communication ### LINK**
+
+- SO EVEN THOUGH OUR CODE EXECUTES ON THE BROWSER, NOT IN THE CONTAINER, WE CAN STILL PARSE THE ROUTES AND USE A REVERSE PROXY TO REDIRECT REQUESTS
+
+- new nginx configuration, 8000 is the port the tasks app listens on
+
+
+          
+    location /api/ {
+        proxy_pass http://task-service.default:8000/;
+    }
+
+
+## Common Kubernetes Deployment Cycle ##
+
+1. build image locally 
+
+        docker build -t cfech/kub-225-task-app .
+                        [image tag] [file location]
+
+2. push to a registry
+
+        docker push  -t cfech/kub-225-task-app
+                        [username/image:tag]
+
+3. write deployment file 
+
+- see 225_Kubernetes_networking\kubernetes\tasks-deployment.yml for example , pay attention to the tag on the image of the pull policy, if set to latest or not
+
+- imagePullPolicy: (Always, Never or Preset), will either always pull it, never pull it or only pull if not present
+
+4. write service file 
+
+- see 225_Kubernetes_networking\kubernetes\frontend-service.yml for example
+
+- see 243_AWS_EKS\kubernetes\auth.yaml for service and deployment in same file
+
+5. apply the deployment and service 
+
+        kubectl apply -f tasks-deployment.yml -f tasks-service.yml
+
+6. (Minikube Specific) Expose service with minikube 
+
+    - get service name 
+
+            kubectl get service
+
+    - expose service 
+
+            minikube service frontend-service
+                                [service name]
+
+## Updating The Container ##
+
+1. re build image locally (could add a tag ie image:2, or use default latest, just make sure to keep in sync with deployment file)
+
+        docker build -t cfech/kub-225-task-app .
+                        [image tag] [file location]
+
+2. push to a registry 
+
+        docker push  -t cfech/kub-225-task-app
+                        [username/image:tag]
+
+4.  Delete the deployment and recreate (5) in order to pull next image 
+
+        kubectl delete -f tasks-deployment.yml
+
+
+5. re-apply the deployment to pull the new image and generate the new pod
+
+        kubectl apply -f tasks-deployment.yml 
+
+6. (Minikube Specific) Expose service with minikube if stopped, not needed if kept open the whole time
+
+    - get service name 
+
+            kubectl get service
+
+    - expose service 
+
+            minikube service frontend-service
+                                [service name]
+
+
+# Section 15 AWS EKS #
+
+- So far have bee working with just local development
+- How do we put this application now into production for the world to use?
+
+- Can use Amazon Elastic Kubernetes Service (EKS)
+
+### 241 Deployment Options And Steps ###
+---
+
+![image](./images/k8s-vs-you.PNG)
+
+- Keep this in mind
+
+- while kubernetes does create and manage your objects, it will not create the cluster/nodes it must be installed on the nodes, both the control center and the worker nodes must be setup
+- minikube sets up this dummy cluster for us in a development environment on the local machine 
+- must setup the infrastructure for kubernetes to run on
+
+- will we use our own data center or leverage a cloud provider (aws, azure, google cloud etc ...)
+
+![image](./images/section_15/deployment-options.PNG)
+
+- cloud provider, could configure a bunch of ec2s to run a cluster, ie install the software and create the network manually of using a tool like KOPS https://github.com/kubernetes/kops
+
+- or could use cloud managed service like EKS, here we just define our cluster architecture and the manager service takes care of the rest for us, may nto have a much fine grained control but this is not always necessary
+
+### 242 AWS EKS vs AWS ECS ###
+---
+
+- EKS - for kubernetes cluster
+- ECS - for standalone containers 
+
+![image](./images/section_15/ecs-vs-eks.PNG)
+
+
+### 243 Preparing The Starting Project ###
+---
+
+see ./243_AWS_EKS
+
+- can setup mongo db here if want to follow along and place in the 243_AWS_EKS\kubernetes\users.yaml file as well as 243_AWS_EKS\docker-compose.yaml
+
+https://www.mongodb.com/atlas/database
+
+- build and push the images for users-api and auth-api in order to retrieve them on docker hub 
+
+
+### 246 Creating And Configuring Kubernetes Cluster With EKS ###
+---
+
+1. Configure the cluster
+ - pick the version
+ - pick the service role, 
+        
+    -- need to create a role for eks, by creating a new role with the AmazonEKSClusterPolicy, which will include everything we need, name the role and apply it to the cluster
+
+ *behind the scenes EKS will create some ec2s to run your cluster, so we must allow EKS to provision resources on our behalf. This is done through IAM roles*
+
+ - next must configure the cluster network that all the nodes will be added, we want to have both a public and private subnet that we can have nodes running on
+
+ - can easily create this with cloudformation, using an s3 url, give it a name and leave the defaults or from the vpc console
+
+ - back in cluster creation network tab, select your new vpc and subnets
+ - select public and private under cluster endpoint access
+
+ - can configure logging if you want, review and create
+
+ - this creates and EKS cluster, a Kubernetes cluster with the help of  EKS
+
+2. Have to configure kubectl to talk to AWS EKS if want to use it, by default it talks to minikube 
+
+- can find config file at user/.kube/config on both mac and windows
+
+- C:\Users\cfech\.kube\config
+
+- ./config - minikube
+
+
+- can configure to talk to eks by using the aws cli, have to install aws cli, create an access key and IAM and login to aws via cli
+
+        aws configure # pass in your accessKeyId, SecretKeyId, and Region name
+
+after we configure aws cli and the cluster is active run 
+
+        aws eks --region us-east-1 update-kubeconfig --name kub-demo
+                         [your region]                      [cluster name] 
+
+- will upd the .kube/config file to talk to this cluster
+
+- have to change this in order to talk to eks when setup
+
+
+### 247 Adding Worker Nodes ###
+---
+
+ 2. Create Nodes
+
+
+
+# Command Index #
+
+## Docker ##
+
+- start docker service, mac/linux
+
+        sudo service docker start
+
+- Show all running containers
+
+        docker ps
+
+- Show all containers
+
+        docker ps -a 
+
+- build the image, the t is a tag,. the . tells docker the correct docker file is in the current directory
+ 
+        docker build . -t nodeappsetup_20
+
+- run a container with the image nodeappsetupe_20 and map local pro 80 to container port 80
+
+        docker run -p 80:80 nodeappsetup_20
+
+- start an old container
+
+        docker start --id or name---
+
+- will run in detached mode so we are no listening on the console and our console is not blocked
+    
+        docker start/run -d 
+
+- can re-attach 
+    
+        docker attach --container name---
+
+- can see logs of a container 
+
+        docker logs --container name---
+
+- reattach  in a different way
+
+        docker logs  -f --container name---
+
+
+- removing containers
+
+        docker rm --name(s) name1 name 2
+
+- removes all stopped containers at once
+    
+        docker container prune 
+
+- shows all images
+
+        docker mages
+
+- to remove images 
+
+        docker rmi --image id, 1,2, 3, ...-- 
+
+- removes all images that are not tagged, add -a for all 
+
+        docker image prune
+
+- --rm remove the container when when stopped
+
+        docker run (image) --rm 
+
+- inspect all the config and info of the image
+    
+        docker image inspect --id----
+
+- docker cp can copy files into a container from local machine (dummy is local file)
+
+        docker cp dummy/. --container name--:/test (:/ path we want )
+
+- copy from container to local
+    
+        docker --container name--:/test  dummy
+
+
+- give tags to images and names to containers, --name give the container a name
+
+        docker run -p 80:80 --name 20_node -t 20_appsetup
+
+- giving a tag to image 
+
+        docker build . -t 20_appsetup
+
+- clones old image with a new tag, doesn't rename
+
+                (old)               (new)
+        docker tag ass1nodeapp:latest  cfech/node-hello-world
+
+- login to docker hub (or other registry if url is passed)
+  
+        docker login 
+
+- logout of docker hub
+
+        docker logout 
+
+- pushes to docker hub
+
+                [repo name]
+        docker push cfech/node-hello-world
+
+- gets this image from the registry(docker hub), will pull the latest version
+
+        docker pull cfech/node-hello-world
+
+- shows all volumes 
+
+        docker volume ls 
+
+-  help with the volumes
+
+        docker volumes --help 
+
+- See all networks
+
+        docker network ls 
+
+- Create a network
+
+        docker network create favorites-net
+
+- Run a container with node in it, will pull from docker hub
+
+        docker run -it node
+
+- Run in default command
+
+        docker run -d-it node
+
+- Docker exec allows us to execute a command inside a running container, Here we say run npm init [container name] in interactive (-it) mode
+
+        docker exec -it  keen_benz npm init
+
+- Run node and override default CMD
+
+        docker run -it  node npm init
+
+### Docker Compose ###
+
+- start a docker compose finds and builds all images , starts a custom network and attaches all containers to it 
+
+        docker-compose up
+
+- Starts in detached mode
+
+        docker compose up -d
+
+- brings the whole network down and prunes containers and networks
+
+        docker-compose down
+
+- Will remove the volumes as well
+
+        docker-compose down -v
+
+- Will rebuild all images in docker compose (ie: if there is a code change or something the bind mount doesn't pick up)
+
+        docker-compose up --build
+
+- Will just build the missing images but not start the containers
+
+        docker-compose build
+
+## Minikube ##
+
+
+- Once minikube installed run to setup a kubernetes cluster on your machine 
+
+        minikube start (will start by default in docker)
+
+- or 
+
+        minikube start --driver=[virtualbox, hyper-v, etc...]
+
+- Can run  to check status of the cluster
+
+        minikube status 
+
+- Can run to see a web dashboard of the cluster
+
+        minikube dashboard
+
+- Other Common Cmds
+
+        minikube pause
+
+        minikube unpause
+
+        minikube update-context
+
+for local development we can get around that by using the minikube specific service command. If we deploy on a cloud provider it should provide an external IP for us
+
+        minikube service first-app
+                        [app name]
+
+
+## Kubernetes ##
+
+- check if installed and client version
+
+        kubectl version --client
+
+- Start the kubernetes cluster to start the master node 
+
+        kubectl create (shows help)
+
+- create a deployment 
+
+            kubectl create deployment first-app --image=cfech/first-kub
+            [       cmd       ] [name of deployment ] [image location]
+
+### Deployments ###
+
+- Shows the deployments
+
+        kubectl get deployments
+
+- To delete deployments
+
+        kubectl delete deployment [deployment name]
+
+- Show all pods 
+
+        kubectl get pods
+
+
+- To expose a pod created by a deployment run This will create the necessary service
+
+        kubectl expose deployment first-app --type=LoadBalancer --port=8080
+        [ cmd   ]       [type] [deployment name] [use a load balancer for unique address for the service] [port exposed by project]
+
+- check rollout status
+
+        kubectl rollout status deployment/first-app
+                                        [deployment name]
+
+- can roll back this update by 
+
+        kubectl rollout undo deployment/first-app
+                                        [deployment name]
+
+- if we ant to revert to an older deployment must take a look at the deployment history
+
+        kubectl rollout history deployment/first-app
+
+
+- can get details with --revision flag
+
+        kubectl rollout history deployment/first-app --revision=3
+
+- to revert back to deployment revision 1
+
+        kubectl rollout undo deployment/first-app --to-revision=1
+
+### Services ###
+
+- To see running services
+
+        kubectl get services
+
+- to delete a running service
+
+        kubectl delete service first-app [service name]
+
+- If don't have auto scalding configured Can scale up a deployment by 
+
+        kubectl scale deployment/first-app --replicas=3
+        [    cmd ] [deployment/name]      [have 3 pods at all times]
+    
+- Scale back down 
+
+        kubectl scale deployment/first-app --replicas=1
+
+
+### Declarative Approach ###
+
+- apply a file
+
+        kubectl apply -f example.yml
+
+- delete a configuration based on file
+
+        kubectl delete -f deployment.yml -f service.yml
+                        [file name]
+
+- delete configuration based on label
+
+        kubectl delete deployments,services -l group=example
+                 [what types to deploy ] -l  [ labelKey=labelValue ]
+
+- to see your configured/existing PV
+
+        kubectl get pv
+
+- to see all claims 
+
+        kubectl get pvc
+
+- check config maps 
+
+        kubectl get configmap
+
+
+## AWS ##
+
+- login to aws account 
+
+        aws configure
+
+- configure local kubectl to run vs aws eks cluster 
+
+        aws eks --region us-east-1 update-kubeconfig --name kub-demo
+                         [your region]                      [cluster name] 
