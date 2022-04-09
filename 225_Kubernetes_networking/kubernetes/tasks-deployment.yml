@@ -1,25 +1,23 @@
-# sets up deployment for users-api container
-# deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: users-deployment
+  name: task-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: users
+      app: task
 # pod
   template: 
     metadata:
       labels:
-        app: users
+        app: task
 # container
     spec:
       containers:
-        - name: users
+        - name: task
         # k8's will always pull the latest, alternative to tags or pull policy
-          image: cfech/kub-225-user-app:latest
+          image: cfech/kub-225-task-app:latest
           env:
             - name: AUTH_ADDRESS
             # localhost is only for our container in the same pod
@@ -28,3 +26,5 @@ spec:
               # value: 10.106.104.92
               # 232 -  utilizing coredns to pass in a the domain name of the other pod to the app , just have to pass in the "[service name.namespace]"
               value: "auth-service.default"
+            - name: TASKS_FOLDER
+              value: tasks

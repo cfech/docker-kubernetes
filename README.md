@@ -1534,6 +1534,8 @@ const filePath = path.join(__dirname, process.env.STORY_FOLDER, 'text.txt');
 
 # 14 Kubernetes Networking #
 
+- see -> ./slides-kubernetes-network.pdf
+
 - Our containers must be able to communicate with us as well as the outside world 
 - another look atr services
 - pod-internal communication (pod with multiple containers)
@@ -1628,3 +1630,82 @@ auth in docker compose, localhost in kubernetes
 - then apply the deployment and it will create a pod with 2 containers that have internal communication while users-api has external connectivity
 
         kubectl apply -f .\users-deployment.yml
+
+
+### 230 Creating Multiple Deployments ###
+---
+
+- we want to have the users, auth and tasks in different pods
+- however we do not want the auth  we want the users to talk to the auth and the tasks to talk to the auth but we do not want the auth to be public facing, so we need to use service type ClusterIP - see 225_Kubernetes_networking\kubernetes\auth-service.yml
+- this will include multiple services, with the service for the auth api being cluster internal
+- we need pod to pod communication inside of a cluster - so we want a type 
+
+### 231 Pod to Pod Communication With IP Addresses and Environment Variables ###
+---
+
+https://stackoverflow.com/questions/45759205/what-environment-variables-are-created-in-kubernetes-by-default
+
+
+- in order for a container (users in this case) to talk to a container in another pod (auth in this case) we have to provide the ip address of the service that exposes the other pod
+
+*side note - localhost works for containers talking to each other in the same pod*
+
+- must find out what ip address the auth services is going to have
+
+- one option is to create this service first and take look at the ip it is assigned and pass that as an env in the deployment.yml of the other pod, this works but not best options
+
+
+- another option is using the exposed environnement variables built into kubernetes that will tell us the ip of the auth service in the form of [NAME]_SERVICE_HOST (name in this case is auth_service)
+
+- see 225_Kubernetes_networking\users-api\users-app.js
+
+        //231, using built in k8's env
+        const response = await axios.get(
+            `http://${process.env.AUTH_SERVICE_SERVICE_HOST}/token/` + hashedPassword + '/' + password
+        );
+
+
+### 232 Using DNS for Pod to Pod Communication ###
+---
+
+https://kubernetes.io/docs/tasks/administer-cluster/coredns/
+
+- Kubernetes runs a dns called coredns, this allows us to set domain names inside of our cluster so we dont have to use IP's if we dont want
+
+- to use this just pass into an env [service-name.namespace]
+
+- namespace is a logical grouping of deployments/service etc. inside a cluster
+
+- can check the namespaces by running 
+
+
+        kubectl get namespaces
+
+- pods are added to "default" by default
+
+- ex 
+
+        env:
+          - name: AUTH_ADDRESS
+            value: "auth-service.default"
+
+### 233 Which Is Best ###
+---
+
+
+
+- Do you want more than 1 container in the same pod? Should only have this if the containers are tightly coupled
+
+- If we want pods to talk to each other we need services for the different pods to give static ip, we can access this ip by 
+1. manually generating it and pasting it into an env 
+2. using the built in k8's env variables
+3. using the generated domain name by coredns 
+
+
+**Also a Challenge**
+- write the deployment and service for the tasks app, modify the code, push the container to get it working with the other services
+
+### 235 Adding A Containerized Frontend ###
+---
+
+

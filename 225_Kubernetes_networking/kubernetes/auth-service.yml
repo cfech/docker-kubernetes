@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+#configuration of the service , pods, ports and types
+spec:
+# selecting pods by label 
+  selector:
+    app: auth
+  # default is ClusterIP- internal service, only reachable inside the cluster, not from the outside world, no public ip, also offers load balancing, good for internal cluster communication
+  #NodePort (service from the outside world but uses node IP addresses, this non static IP creates issues)
+  # LoadBalancer - creates static public IP independent from any pods
+  type: ClusterIP 
+  ports:
+    - protocol: "TCP"
+    #port to expose on
+      port: 80
+      #port container exposes
+      targetPort: 80

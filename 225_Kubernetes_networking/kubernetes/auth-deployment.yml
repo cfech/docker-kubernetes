@@ -1,0 +1,21 @@
+# sets up deployment for users-api container
+# deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+# pod
+  template: 
+    metadata:
+      labels:
+        app: auth
+# container
+    spec:
+      containers:
+        - name: auth
+          image: cfech/kub-225-auth-app:latest
