@@ -1,34 +1,24 @@
-# this has to be created to work with our efs driver, config can be found in docs
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
   name: efs-sc
 provisioner: efs.csi.aws.com
-
-# three hyphens separate objects in yml file 
 ---
-# example of setting up a PV with AWS EFS 
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: efs-pv
 spec:
-  capacity:
+  capacity: 
     storage: 5Gi
   volumeMode: Filesystem
   accessModes:
-  # allow pods in multiple nodes to use this file system
     - ReadWriteMany
-  # need a specific storage class for EFS
   storageClassName: efs-sc
-  #type of Pv we are going to use
   csi:
-  #can be found in docs
     driver: efs.csi.aws.com
-    volumeHandle: inject EFS ID here from EFS console
-
+    volumeHandle: fs-59d14521
 ---
-# a claim on the pv we are creating above
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -36,11 +26,10 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  #created above
   storageClassName: efs-sc
   resources:
-    storage: 5Gi
-
+    requests:
+      storage: 5Gi
 ---
 apiVersion: v1
 kind: Service
@@ -60,7 +49,7 @@ kind: Deployment
 metadata:
   name: users-deployment
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: users
@@ -71,22 +60,16 @@ spec:
     spec:
       containers:
         - name: users-api
-          image: insert my image here 
+          image: MY PUSHED IMAGE
           env:
             - name: MONGODB_CONNECTION_URI
-              value: 'insert my mongo url here'
-            - name: AUTH_API_ADDRESSS
+              value: 'MY MONGO URI'
+            - name: AUTH_API_ADDRESS
               value: 'auth-service.default:3000'
-          # mounting the volume described below
           volumeMounts:
             - name: efs-vol
-            #path inside of the container
-              mountPah: /app/users
-
-      #claiming the volume created above
+              mountPath: /app/users
       volumes:
         - name: efs-vol
-          persistentVolumeClaim:
-          # claiming the claim name we created above
+          persistentVolumeClaim: 
             claimName: efs-pvc
-

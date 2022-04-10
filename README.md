@@ -2030,9 +2030,126 @@ after we configure aws cli and the cluster is active run
 ### 247 Adding Worker Nodes ###
 ---
 
- 2. Create Nodes
+ 2. Create worker nodes
+
+ - in the compute section on the cluster add a node group.
+
+ - then assign an IAM role for the node (the worker nodes are just ec2s, which need permissions for logging and networking), have to create it in IAM, create a role and give it the eksWorkerNodePolicy and the AmazonEKE_CNI_Policy and the AmazonEC2ContainerRegistryReadOnlyPolicy, name the role and assign it to the node in the cluster/node group config
+
+ - leave the rest default and proceed
+
+ - set compute and scaling config sets the type of ec2s managed (ie small, medium large etc...), t3.small may be the smallest you can use, micro doesn't seem to have enough resources for kubernetes 
+
+ - can then set the scaling policy, ie how many nodes, min, max and desired. Can have more the one pod on a node
+
+- next configure networking, ie subnets and ssh into nodes (if we want)
+
+- review and create 
+
+- now eks will launch and install all of the software on these nodes and the networking is configured
+
+- at this point it is now ready to start building deployments, services etc ... at this point it is at the state of minikube just after install
+
+**FYI can see these instances in the EC2 Dashboard**
+
+### 248 Applying Our Kubernetes Config ###
+---
 
 
+- apply our two files 243_AWS_EKS\kubernetes\auth.yaml and 243_AWS_EKS\kubernetes\users.yaml ( with kubectl pointing at aws eks cluster, and images in docker hub already)
+
+        kubectl apply -f auth.yml -f user.yml 
+
+- can check deployments, services and pods to monitor progress
+
+
+- now on eks our services of type LoadBalancer we are provided a url, so we can send requests to this url from the outside world, no need to use minikube service (or some equivalent) to expose it
+
+- after deploying a service of type LoadBalancer you can then see this Load Balancer in the EC2 console
+
+*containers are in pods, pods are distributed by kubernetes across nodes based on available space/resources*
+
+### 249 Getting Started With Volumes ###
+---
+
+- With a running application now need a volume to persist data 
+- here we will us the CSI type  ( dont have any code that writes to a hard drive but just an example)
+
+- https://kubernetes.io/docs/concepts/storage/volumes/#csi
+
+- can add a volume in the yml file or setup a Persistent Volume and Persistent Volume Claim [216 Defining A Persistent Volume](#216-defining-a-persistent-volume)
+    + [217 Creating A Persistent Volume Claim](#217-creating-a-persistent-volume-claim)
+
+### 250 Adding AWS Elastic File System  ###
+---
+
+https://docs.aws.amazon.com/eks/latest/userguide/efs-csi.html
+
+- will use CSI Volume type 
+- follow guide above
+
+- have to install the aws efs driver for csi in our cluster so we can use it , aws efs is not natively supported by kubernetes
+
+3. Create EFS from AWS EFS console
+- have to have/create a security group to allow access (inbound rules -> nfs, custom, your vpc cider range ( can be found un your vpc console for the vpc your working in) )
+- Back on EFS console, create file system, name it  and choose correct vpc (the one your cluster is in)
+- customize, next, change security groups to the one your just created for all availability zones, next , next , create 
+
+- now we have a file system that can be used as a volume
+### 251 Creating A Persistent Volume For EFS  ###
+---
+
+See 243_AWS_EKS\kubernetes\users.yaml for config
+
+- show all storage classes
+
+        kubectl get sc 
+
+- created a storage class, persistent Volume and claim and connected this to our pod/container in the deployment
+### 252 Creating A Persistent Volume For EFS  ###
+---
+
+**Go Back and Replace user-actions.js and user-logs.js with new updated versions, did not do this yet 4/10/22, rebuild and push to docker hub**
+
+- with the configuration in the uses.yaml file our PV should be working with persistent container/pod/node independent data
+
+- can test this by writing some data, the shrinking the number of replicas to 0 and applying the users.yaml
+
+- once the pods are terminated the change the replicas in the users.yaml file new pods will be spun up
+
+- send another get request to get the logs and if the data is there then it is working
+
+
+### 253 A Challenge ###
+---
+
+files in ./253_EKS_Challenge
+
+- deploy the files provided to aws eks, have to write a deployment/service/pvc for tasks api
+
+
+### 254 Challenge Solution ###
+---
+
+1. build and push 3 images to docker hub
+2. Follow directions above to create EKS cluster, worker nodes and EFS file system in AWS Console
+3. map kubectl command to talk to that cluster
+4. create a  tasks.yaml to create the resources tasks app needs, see 253_EKS_Challenge\kubernetes\tasks.yaml
+5. Once kubectl connected to aws, aws cluster, worker nodes and efs are created, and we have pushed our images to docker hub we can apply the auth, tasks and user yaml files to create all of the objects necessary for our app to run
+6. test your app with postman and the aws exposed urls ( find by running kubectl get services)
+- send a POST request to the user service /signUp to create a user, json body {"email":"my@email.com", "password":"testing"}
+- send a POST request to user service / login to login, json body {"email":"my@email.com", "password":"testing"}
+- take the token in the response of the /login and paste it into an Authorization header "Bearer [Token]" for GET task service /tasks then send a request to get the tasks  - should get back empty tasks
+- create the same authorization header for a POST  to task service /tasks with a json body {"title": "my title", "text": "my text" } to create a tasks
+- repeat step above of GET  to /tasks (with authorization header) to see created task
+- task array will be unique to the user
+- can delete the tasks by sending DELETE request to tasks service /task/:id with the authorization header and task id as a url param
+
+## Additional Areas of Study ##
+- creating containers using different languages such as c#, python or java 
+- CI/CD with containers (gitlab jobs, travis CI, github actions, aws code deploy)
+- AWS Deep Dive and Other Cloud Providers such as Azure, Google, Digital Ocean, Linode etc...
+- Advanced Cluster or Docker Administration, ie server admin stuff
 
 # Command Index #
 
@@ -2343,6 +2460,9 @@ for local development we can get around that by using the minikube specific serv
 
         kubectl get configmap
 
+- show all storage classes
+
+        kubectl get sc 
 
 ## AWS ##
 
